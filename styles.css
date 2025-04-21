@@ -1,0 +1,22 @@
+
+
+.container {
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    color: white; /* So the text is visible on black background */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Optional: center the heading */
+}
+
+.heading {
+    color: red;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 400px;  /* set your preferred width */
+    height: 600px; /* set your preferred height */
+  }
