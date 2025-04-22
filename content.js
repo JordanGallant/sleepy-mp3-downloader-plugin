@@ -1,4 +1,6 @@
 import { ID3Writer } from 'browser-id3-writer';
+import lamejs from 'lamejs';
+
 
 const createDownloadButton = (trackElement) => {
     const btn = document.createElement('button');
@@ -35,7 +37,7 @@ const createDownloadButton = (trackElement) => {
 
             const transcodingUrl = data.media.transcodings[3].url + "?" + CLIENT_ID;
             const imageURL = data.artwork_url;
-            const trackTitle = `${data.title}`;
+            const trackTitle = data.title;
             const trackArtist = data.publisher_metadata.artist;
             const trackGenre = data.genre;
 
@@ -47,22 +49,28 @@ const createDownloadButton = (trackElement) => {
 
             // Get audio and image data
             const audio = await getAudioUintArray(audioBlob);
-            const image = await getImageBase64(imageURL);
-
-           
-            console.log("AUDIO (Uint8Array):", audio);
-            console.log("IMAGE (Base64):", image);
+            const image = await getImageBlob(imageURL);
 
             // Example of usage with ID3Writer (optional)
-            // const writer = new ID3Writer(audio);
-            // writer.setFrame('TIT2', trackTitle).setFrame('TPE1', [trackArtist]).setFrame('TCON', [trackGenre]);
-            // writer.addTag();
-            // const taggedBlob = writer.getBlob();
+             const writer = new ID3Writer(audio);
+             writer
+             .setFrame('TIT2', trackTitle)
+             .setFrame('TPE1', [trackArtist,""])
+             .setFrame('TCON',[trackGenre,""])
+             .setFrame('APIC', {
+                type: 3,
+                data: image,
+                description: 'Cover',
+              });
+             writer.addTag();
+             const taggedBlob = writer.getBlob();
 
-            const blobUrl = URL.createObjectURL(audioBlob);
+
+
+            const blobUrl = URL.createObjectURL(taggedBlob);
             const a = document.createElement('a');
             a.href = blobUrl;
-            a.download = trackTitle + ".mp3";
+            a.setAttribute('download', `${trackTitle}.mp3`); 
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -76,14 +84,11 @@ const createDownloadButton = (trackElement) => {
     return btn;
 };
 //helper that converts url -> image -> base 64
-const getImageBase64 = async (url) => {
+const getImageBlob = async (url) => {
     const response = await fetch(url);
     const imageBlob = await response.blob();
     const arrayBuffer = await imageBlob.arrayBuffer();
-    const base64String = btoa(
-        String.fromCharCode(...new Uint8Array(arrayBuffer))
-    );
-    return base64String;
+    return arrayBuffer;
 };
 // helper that converts audio blob -> uint array
 const getAudioUintArray = async (blob) => {

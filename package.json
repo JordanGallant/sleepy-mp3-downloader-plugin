@@ -12,6 +12,8 @@
     "vite": "^6.3.2"
   },
   "dependencies": {
-    "browser-id3-writer": "^6.2.0"
+    "browser-id3-writer": "^6.2.0",
+    "fluent-ffmpeg": "^2.1.3",
+    "lamejs": "^1.2.1"
   }
 }
