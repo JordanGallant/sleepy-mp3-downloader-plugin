@@ -2,19 +2,20 @@
     "manifest_version": 3,
     "name": "SoundCloud Downloader",
     "version": "1.0",
-    "permissions": ["activeTab", "scripting","downloads"],
+    "permissions": ["activeTab", "scripting", "downloads"],
     "host_permissions": ["https://soundcloud.com/*"],
     "content_scripts": [
       {
         "matches": ["https://soundcloud.com/*"],
-        "js": ["content.js"]
+        "js": ["dist/main.js"],
+        "type": "module" 
       }
     ],
     "action": {
       "default_popup": "content.html",
       "default_icon": {
-      "16": "icon.png"
-    }
+        "16": "icon.png"
+      }
     }
   }
   
