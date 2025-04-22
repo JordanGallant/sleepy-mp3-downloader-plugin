@@ -42,10 +42,10 @@ const createDownloadButton = (trackElement) => {
             const trackGenre = data.genre;
 
             const transcodingRes = await fetch(transcodingUrl);
-            const transcodingData = await transcodingRes.blob();
-            console.log(transcodingData)
+            const transcodingData = await transcodingRes.json();
             const audioRes = await fetch(transcodingData.url);
-            const audioBlob = await audioRes.blob();
+            const audioBlob = await audioRes.blob();//untagged
+            
 
             // Get audio and image data
             const audio = await getAudioUintArray(audioBlob);
@@ -62,7 +62,10 @@ const createDownloadButton = (trackElement) => {
                     description: 'Cover',
                 });
             writer.addTag();
-            const taggedBlob = writer.getBlob();
+            const taggedBlob = writer.getBlob(); //tagged
+            console.log(taggedBlob)
+
+            //need to convert taggedblob to mp3? server confused maybe???
 
 
                 //curl request that works....
@@ -82,12 +85,12 @@ const createDownloadButton = (trackElement) => {
             }
     
             // Handle server response (you can modify this based on your server's response)
-            const postData = await postResponse.json();
-            console.log('Server response:', postData);
+            const convertedBlob = await postResponse.blob();
+            console.log('Server response:', convertedBlob);
 
 
 
-            const blobUrl = URL.createObjectURL(taggedBlob);
+            const blobUrl = URL.createObjectURL(convertedBlob);
             const a = document.createElement('a');
             a.href = blobUrl;
             a.setAttribute('download', `${trackTitle}.mp3`);
