@@ -3,7 +3,7 @@ import lamejs from 'lamejs';
 
 
 const createDownloadButton = (trackElement) => {
-    
+
     const btn = document.createElement('button');
     btn.innerText = 'Download';
     btn.className = 'my-sc-download-btn';
@@ -21,9 +21,11 @@ const createDownloadButton = (trackElement) => {
         const API_URL = "https://api-v2.soundcloud.com/resolve?url=";
         let trackUrl = 'No URL found';
 
+
         if (trackElement.classList.contains('trackItem')) {
             const trackLink = trackElement.querySelector('.trackItem__trackTitle');
             trackUrl = trackLink ? trackLink.href : trackUrl;
+
         } else if (trackElement.classList.contains('listenEngagement__footer')) {
             trackUrl = window.location.href;
         } else if (trackElement.classList.contains('.systemPlaylistBannerItem')) {
@@ -38,7 +40,12 @@ const createDownloadButton = (trackElement) => {
             const data = await response.json();
 
             const transcodingUrl = data.media.transcodings[3].url + "?" + CLIENT_ID;
-            const imageURL = data.artwork_url;
+            let imageSmall = data.artwork_url; //default image - bad quality
+            const imageURL = imageSmall.replace("-large.png", "-t1080x1080.png")
+
+            
+            console.log(imageURL)
+
             const trackTitle = data.title;
             const trackArtist = data.publisher_metadata.artist;
             const trackGenre = data.genre;
@@ -85,8 +92,8 @@ const createDownloadButton = (trackElement) => {
             const convertedBlob = await postResponse.blob();
             console.log('Server response:', convertedBlob);
 
-            
-            
+
+
 
             const blobUrl = URL.createObjectURL(convertedBlob);
             const a = document.createElement('a');
