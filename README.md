@@ -8,11 +8,12 @@ Most MP3 downloaders are tedious to use and often return low-quality audio — t
 
 ## How to use
 
-1. Open your browser extensions page:
+1.git clone https://github.com/JordanGallant/soundcloud-downloader-plugin.git
+2. Open your browser extensions page:
    - In Brave (or Chrome): `brave://extensions/` or `chrome://extensions/`
-2. In the top-right corner, enable **Developer mode**.
-3. Click **Load unpacked** and select the location of this repo.
-4. Visit [SoundCloud](https://soundcloud.com), and the plugin will automatically inject into the browser.
+3. In the top-right corner, enable **Developer mode**.
+4. Click **Load unpacked** and select the location of this repo.
+5. Visit [SoundCloud](https://soundcloud.com), and the plugin will automatically inject into the browser.
 
 ### Build Command
 
