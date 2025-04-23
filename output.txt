@@ -1,27 +1,31 @@
 To Dos
 ---------------------------
-Download History? - based off of User IP or what>
+Store download history in content.html
+User ID can be revoked at any time -> scrape userID and parse it dynamically
+
 Spotify downloader?
+
 Most Downloaded form all users?
 
 ---------------------------
 
 Known Errors:
-User ID might Expire - Can be revoked at any time -  A solution for this?
+
 
 ---------------------------
 Finished ToDos:
 
 23rd April 2025
  -
-Track Progress of Download
+Track Progress of Download %
 Server Logging 
 Better Soundcloud Images
 Dosnt work In all playlists -> Can download in all playlists
 Fix Artisit names/
 Add Album | Unkown album
 Feature - Speed Improvemnt - move convert before metadata tagging?
-Dynamic Ids - to allow multiple process tracking
+Feature- Dynamic Ids - to allow multiple process tracking
+Feature - UI - show current song that is being download
 ---------------------------
 
 

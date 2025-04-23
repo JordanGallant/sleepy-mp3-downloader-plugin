@@ -10,10 +10,9 @@ const createDownloadButton = (trackElement) => {
     btn.style.color = 'white';
 
     btn.onclick = async () => {
-        chrome.runtime.sendMessage({ action: "showPopup" });
         btn.innerText = 'Processing...';
         btn.disabled = true;
-        
+
         const CLIENT_ID = "client_id=EjkRJG0BLNEZquRiPZYdNtJdyGtTuHdp"; //client id needed for authorization, can be repeated, Souncloud is dumb and bad at security
         const API_URL = "https://api-v2.soundcloud.com/resolve?url="; //very useful url resolver that finds any track from a given playlist url
         let trackUrl = 'No URL found';
@@ -32,13 +31,15 @@ const createDownloadButton = (trackElement) => {
         const endUrl = API_URL + trackUrl + "&" + CLIENT_ID;
 
         try {
+
+
             const response = await fetch(endUrl);
             const data = await response.json();
             //search for progressive audio stream
             const progressiveTranscoding = data.media.transcodings.find(
                 transcoding => transcoding.format.protocol === "progressive"
             );
-            const transcodingUrl = progressiveTranscoding 
+            const transcodingUrl = progressiveTranscoding
                 ? progressiveTranscoding.url + "?" + CLIENT_ID
                 : null;
 
@@ -54,7 +55,14 @@ const createDownloadButton = (trackElement) => {
             const trackArtist = data.user.username;
             const trackAlbum = data.publisher_metadata?.album_title || "Unknown Album";
             const trackGenre = data.genre;
-            
+
+            //send data to service worker
+            chrome.runtime.sendMessage({
+                action: "addToPopup",
+                title: trackTitle,
+                artist: trackArtist,
+            });
+
             //gets audio blob from progressive audio stream url
             const transcodingRes = await fetch(transcodingUrl);
             const transcodingData = await transcodingRes.json();
