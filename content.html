@@ -1,23 +1,22 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="styles.css">
-    <script type="module">
-        import { ID3Writer } from 'https://cdn.jsdelivr.net/npm/browser-id3-writer@4.4.0/dist/browser-id3-writer.min.js';
-      
-        // ... your rest of the code here
-      </script>
 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css">
+  <script src="popup.js" defer></script>
+</head>
 
-  </head>
-  <body>
-    <div class= "container">
-    <h1 class="heading">
-        Settings
-    </h1>
+<body>
+  <div class="container">
+    <h1 class="heading">Settings</h1>
     <h2>Button Color</h2>
-</div>
-  </body>
+    <div>
+      <h3>Download Progress</h3>
+      <p id="progress-text">0%</p>
+    </div>
+  </div>
+</body>
+
 </html>

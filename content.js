@@ -8,7 +8,7 @@ const createDownloadButton = (trackElement) => {
     btn.className = 'my-sc-download-btn';
     btn.style.marginLeft = '10px';
     btn.style.background = '#FF5500';
-    btn.style.borderRadius ='10px'
+    btn.style.borderRadius = '10px'
     btn.style.color = 'white';
 
     btn.onclick = async () => {
@@ -45,7 +45,7 @@ const createDownloadButton = (trackElement) => {
             const transcodingData = await transcodingRes.json();
             const audioRes = await fetch(transcodingData.url);
             const audioBlob = await audioRes.blob();//untagged
-            
+
 
             // Get audio and image data
             const audio = await getAudioUintArray(audioBlob);
@@ -74,15 +74,17 @@ const createDownloadButton = (trackElement) => {
                 method: 'POST',
                 body: formData,
             });
-    
+
             if (!postResponse.ok) {
                 throw new Error("Failed to upload audio");
             }
-    
-            // Handle server response (you can modify this based on your server's response)
+
+            // Handle server response -> 320kbs 
             const convertedBlob = await postResponse.blob();
             console.log('Server response:', convertedBlob);
 
+            
+            
 
             const blobUrl = URL.createObjectURL(convertedBlob);
             const a = document.createElement('a');
@@ -100,7 +102,7 @@ const createDownloadButton = (trackElement) => {
 
     return btn;
 };
-//helper that converts url -> image -> base 64
+//helper that converts url -> image -> array buffer
 const getImageBlob = async (url) => {
     const response = await fetch(url);
     const imageBlob = await response.blob();

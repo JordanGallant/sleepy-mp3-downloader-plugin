@@ -10,7 +10,30 @@ app.use(cors({
     origin: '*',
 }));
 
+// Basic logging
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
+
 const upload = multer({ dest: 'uploads/' }); // This stores the file temporarily
+let progressClients = [];
+
+// Endpoint to store progress of download
+app.get('/progress', (req, res) => {
+    res.set({
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+    });
+    res.flushHeaders();
+
+    progressClients.push(res);
+
+    req.on('close', () => {
+        progressClients = progressClients.filter(c => c !== res);
+    });
+});
 
 app.post('/convert-audio', upload.single('audio'), (req, res) => {
     const audioFile = req.file;
@@ -21,8 +44,23 @@ app.post('/convert-audio', upload.single('audio'), (req, res) => {
 
     ffmpeg(inputPath)
         .audioBitrate(320)
-        .save(outputPath)
+        .on('start', (commandLine) => {
+            console.log('[FFMPEG START]', commandLine);
+        })
+        .on('progress', (progress) => {
+            console.log(`[FFMPEG PROGRESS] ${progress.percent?.toFixed(2) || 0}% done`);
+            const message = JSON.stringify({
+                percent: progress.percent?.toFixed(2),
+            });
+            progressClients.forEach(client =>
+                client.write(`data: ${message}\n\n`)
+            );
+        })
+        .on('stderr', (stderrLine) => {
+            console.log('[FFMPEG STDERR]', stderrLine);
+        })
         .on('end', () => {
+            console.log('[FFMPEG END] Conversion finished.');
             // Send the file for download after conversion
             res.download(outputPath, (err) => {
                 if (err) {
@@ -35,9 +73,10 @@ app.post('/convert-audio', upload.single('audio'), (req, res) => {
             });
         })
         .on('error', (err) => {
-            console.error('Error during conversion:', err);
+            console.error('[FFMPEG ERROR]', err.message);
             res.status(500).send('Error during conversion');
-        });
+        })
+        .save(outputPath);
 });
 
 app.listen(3000, () => {

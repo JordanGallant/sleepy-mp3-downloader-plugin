@@ -1,21 +1,26 @@
 {
-    "manifest_version": 3,
-    "name": "SoundCloud Downloader",
-    "version": "1.0",
-    "permissions": ["activeTab", "scripting", "downloads"],
-    "host_permissions": ["https://soundcloud.com/*"],
-    "content_scripts": [
-      {
-        "matches": ["https://soundcloud.com/*"],
-        "js": ["dist/main.js"],
-        "type": "module" 
-      }
-    ],
-    "action": {
-      "default_popup": "content.html",
-      "default_icon": {
-        "16": "icon.png"
-      }
+  "manifest_version": 3,
+  "name": "SoundCloud Downloader",
+  "version": "1.0",
+  "permissions": ["activeTab", "scripting", "downloads"],
+  "host_permissions": [
+    "https://soundcloud.com/*",
+    "https://audio-api-6r6z.onrender.com/*"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://soundcloud.com/*"],
+      "js": ["dist/main.js"],
+      "type": "module"
+    }
+  ],
+  "action": {
+    "default_popup": "content.html",
+    "default_icon": {
+      "16": "icon.png"
     }
   }
-  
+}
