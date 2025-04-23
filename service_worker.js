@@ -18,3 +18,9 @@ evtSource.onmessage = (event) => {
 evtSource.onerror = (err) => {
   console.error("SSE error:", err);
 };
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (request.action === "showPopup") {
+    chrome.action.openPopup(); // This opens the popup
+  }
+});

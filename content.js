@@ -3,6 +3,7 @@ import lamejs from 'lamejs';
 
 
 const createDownloadButton = (trackElement) => {
+    
     const btn = document.createElement('button');
     btn.innerText = 'Download';
     btn.className = 'my-sc-download-btn';
@@ -12,6 +13,7 @@ const createDownloadButton = (trackElement) => {
     btn.style.color = 'white';
 
     btn.onclick = async () => {
+        chrome.runtime.sendMessage({ action: "showPopup" });
         btn.innerText = 'Processing...';
         btn.disabled = true;
 
@@ -125,3 +127,4 @@ const addDownloadButton = () => {
 };
 
 setInterval(addDownloadButton, 3000);
+
