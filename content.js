@@ -61,15 +61,21 @@ const createDownloadButton = (trackElement) => {
             const audioRes = await fetch(transcodingData.url);
             const audioBlob = await audioRes.blob();
 
+            //dynamic id generation
+            const id = Date.now().toString();
+            //send id to service worker
+            chrome.runtime.sendMessage({ action: "setId", id: id });
+
             // creates payload to send to api
             const formData = new FormData();
             formData.append('audio', audioBlob, 'audio.mp3');
 
             //send untagged audio blob to API - where it will be converted to 320 kbps 
-            const postResponse = await fetch('https://audio-api-6r6z.onrender.com/convert-audio', {
+            const postResponse = await fetch(`https://audio-api-6r6z.onrender.com/convert-audio?id=${id}`, {
                 method: 'POST',
                 body: formData,
             });
+            console.log(postResponse)
 
             if (!postResponse.ok) {
                 throw new Error("Failed to upload audio");

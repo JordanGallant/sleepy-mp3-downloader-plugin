@@ -1,22 +1,27 @@
 To Dos
 ---------------------------
+Download History? - based off of User IP or what>
 Spotify downloader?
-User ID might Expire?
-Allow Multiple Downloads? - BullMQ?
-Download History?
-Feature - Speed Improvemnt - move convert before metadata tagging?
+Most Downloaded form all users?
+
 ---------------------------
 
 Known Errors:
-Fritz Schnackenpfefferhausen -> downloads for any song by this user do not work -> conversion error
-bug wen stoped a download in the middle
+User ID might Expire - Can be revoked at any time -  A solution for this?
 
 ---------------------------
 Finished ToDos:
+
+23rd April 2025
+ -
 Track Progress of Download
 Server Logging 
 Better Soundcloud Images
 Dosnt work In all playlists -> Can download in all playlists
 Fix Artisit names/
 Add Album | Unkown album
+Feature - Speed Improvemnt - move convert before metadata tagging?
+Dynamic Ids - to allow multiple process tracking
 ---------------------------
+
+
