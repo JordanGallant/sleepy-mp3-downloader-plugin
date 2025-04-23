@@ -11,25 +11,24 @@ document.addEventListener("DOMContentLoaded", () => {
   // Connect to the service worker
   const port = chrome.runtime.connect({name: "popup"});
   
-  // Listen for messages from service worker
+  // gets progress form service worker (4)
   port.onMessage.addListener((message) => {
     if (message.type === "progress") {
       // Update progress
       progressElement.textContent = `${message.percent}%`;
       chrome.storage.local.set({ percent: message.percent });
     } 
+    //gets titles from service worker (6)
     else if (message.type === "titles") {
-  
-  
-      
-      // Clear existing titles first
+
+      // default
       titlesContainer.innerHTML = "";
 
       //reverse array so most recent is first
       const reversedTitles = message.titles.reverse();
 
       
-      // Create elements for each title and add to container
+      // create elements for each titles
       reversedTitles.forEach((title) => {
         const titleElement = document.createElement("p");
         titleElement.textContent = title;
