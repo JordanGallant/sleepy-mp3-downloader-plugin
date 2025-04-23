@@ -20,3 +20,6 @@ html, body {
   width: 400px;  /* set your preferred width */
   height: 600px; /* set your preferred height */
 }
+#track-progress {
+  color: red;
+}

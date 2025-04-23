@@ -1,7 +1,11 @@
 To Dos
 ---------------------------
+
 Store download history in content.html
+move the track progress to button
+If more than one trackArtist include all names in metadata
 User ID can be revoked at any time -> scrape userID and parse it dynamically
+
 
 Spotify downloader?
 

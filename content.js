@@ -10,6 +10,8 @@ const createDownloadButton = (trackElement) => {
     btn.style.color = 'white';
 
     btn.onclick = async () => {
+
+
         btn.innerText = 'Processing...';
         btn.disabled = true;
 
@@ -56,12 +58,20 @@ const createDownloadButton = (trackElement) => {
             const trackAlbum = data.publisher_metadata?.album_title || "Unknown Album";
             const trackGenre = data.genre;
 
-            //send data to service worker
-            chrome.runtime.sendMessage({
-                action: "addToPopup",
-                title: trackTitle,
-                artist: trackArtist,
-            });
+
+            /// gets array of strings from local storage or creates an empty array (1)
+            const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || []; 
+            
+
+            // append track title if not already-> checks if not there (2)
+            if (!existingTitles.includes(trackTitle)) {
+                existingTitles.push(trackTitle);
+                localStorage.setItem('trackTitles', JSON.stringify(existingTitles));
+            }
+            
+            console.log('Updated trackTitles:', existingTitles);
+            //sednds titles to service_worker (3)
+            chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
 
             //gets audio blob from progressive audio stream url
             const transcodingRes = await fetch(transcodingUrl);
@@ -71,7 +81,7 @@ const createDownloadButton = (trackElement) => {
 
             //dynamic id generation
             const id = Date.now().toString();
-            //send id to service worker
+            //sends id to service worker (1)
             chrome.runtime.sendMessage({ action: "setId", id: id });
 
             // creates payload to send to api
@@ -158,3 +168,5 @@ const addDownloadButton = () => {
 };
 
 setInterval(addDownloadButton, 3000);
+
+
