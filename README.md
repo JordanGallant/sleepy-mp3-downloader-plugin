@@ -17,7 +17,7 @@ Most MP3 downloaders are tedious to use and often return low-quality audio — t
 4. Click **Load unpacked** and select the location of this repo.
 5. Visit [SoundCloud](https://soundcloud.com), and the plugin will automatically inject into the browser.
 
-### Build Command
+### Development 
 
 To build the extension, run:
 
