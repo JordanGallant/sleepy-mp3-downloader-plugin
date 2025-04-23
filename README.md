@@ -8,7 +8,9 @@ Most MP3 downloaders are tedious to use and often return low-quality audio — t
 
 ## How to use
 
-1.git clone https://github.com/JordanGallant/soundcloud-downloader-plugin.git
+1. ```bash
+   git clone https://github.com/JordanGallant/soundcloud-downloader-plugin.git
+   ```
 2. Open your browser extensions page:
    - In Brave (or Chrome): `brave://extensions/` or `chrome://extensions/`
 3. In the top-right corner, enable **Developer mode**.
