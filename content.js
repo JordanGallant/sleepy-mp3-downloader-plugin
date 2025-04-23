@@ -1,5 +1,4 @@
-import { ID3Writer } from 'browser-id3-writer';
-import lamejs from 'lamejs';
+import { ID3Writer } from 'browser-id3-writer'; // metadata writer 
 
 
 const createDownloadButton = (trackElement) => {
@@ -17,11 +16,12 @@ const createDownloadButton = (trackElement) => {
         btn.innerText = 'Processing...';
         btn.disabled = true;
 
+        //url has to be authorized with client ID to get track info -  this can be reused (they suck at security)
         const CLIENT_ID = "client_id=EjkRJG0BLNEZquRiPZYdNtJdyGtTuHdp";
-        const API_URL = "https://api-v2.soundcloud.com/resolve?url=";
-        let trackUrl = 'No URL found';
+        const API_URL = "https://api-v2.soundcloud.com/resolve?url="; //resolves any track from playlist url - very useful
+        let trackUrl = 'No URL found'; //default track url
 
-
+        //get link from dom objects based off of class name
         if (trackElement.classList.contains('trackItem')) {
             const trackLink = trackElement.querySelector('.trackItem__trackTitle');
             trackUrl = trackLink ? trackLink.href : trackUrl;
@@ -32,34 +32,53 @@ const createDownloadButton = (trackElement) => {
             const trackLink = trackElement.querySelector('.selectionPlaylistBanner__artworkLink');
             trackUrl = trackLink ? trackLink.href : trackUrl;
         }
-
+        // create the url to get the transcoded audio stream
         const endUrl = API_URL + trackUrl + "&" + CLIENT_ID;
 
         try {
+            //requeust to api for specific song
             const response = await fetch(endUrl);
-            const data = await response.json();
+            const data = await response.json(); //convert to json
 
-            const transcodingUrl = data.media.transcodings[3].url + "?" + CLIENT_ID;
+
+            //find progressive audio stream - wow (i think this slow it down)
+            const progressiveTranscoding = data.media.transcodings.find(
+                transcoding => transcoding.format.protocol === "progressive"
+            );
+            const transcodingUrl = progressiveTranscoding 
+                ? progressiveTranscoding.url + "?" + CLIENT_ID
+                : null;
+            
+            if (!transcodingUrl) {
+                console.error("No progressive stream found");
+                throw new Error("No progressive stream available for this track");
+            }
+            console.log(transcodingUrl);
+
+            //get image for metadata
             let imageSmall = data.artwork_url; //default image - bad quality
             const imageURL = imageSmall.replace("-large.png", "-t1080x1080.png")
 
-            
-            console.log(imageURL)
+            //collect information for metadata
+            const trackTitle = data.title; 
+            const trackArtist = data.user.username; 
+            const trackAlbum =  data.publisher_metadata.album_title || "Single" /
+            console.log(trackAlbum)
+            console.log(trackArtist)
+            const trackGenre = data.genre; 
 
-            const trackTitle = data.title;
-            const trackArtist = data.publisher_metadata.artist;
-            const trackGenre = data.genre;
-
+            //get actual audio
             const transcodingRes = await fetch(transcodingUrl);
             const transcodingData = await transcodingRes.json();
             const audioRes = await fetch(transcodingData.url);
-            const audioBlob = await audioRes.blob();//untagged
+            const audioBlob = await audioRes.blob();// untagged audio Blob
 
 
-            // Get audio and image data
+            // Get audio and image data objects
             const audio = await getAudioUintArray(audioBlob);
             const image = await getImageBlob(imageURL);
 
+            //create metadata writer
             const writer = new ID3Writer(audio);
             writer
                 .setFrame('TIT2', trackTitle)
@@ -75,10 +94,11 @@ const createDownloadButton = (trackElement) => {
             console.log(taggedBlob)
 
 
-            // Create Payloud to send to API
+            // create payload to send to API
             const formData = new FormData();
             formData.append('audio', taggedBlob, 'audio.mp3');
 
+            //sends audio blob to api at the convert-audio endpoint
             const postResponse = await fetch('https://audio-api-6r6z.onrender.com/convert-audio', {
                 method: 'POST',
                 body: formData,
@@ -89,12 +109,12 @@ const createDownloadButton = (trackElement) => {
             }
 
             // Handle server response -> 320kbs 
-            const convertedBlob = await postResponse.blob();
+            const convertedBlob = await postResponse.blob();// converts MP3 to blob
             console.log('Server response:', convertedBlob);
 
 
 
-
+            //donwload converted & tagged MP3
             const blobUrl = URL.createObjectURL(convertedBlob);
             const a = document.createElement('a');
             a.href = blobUrl;
@@ -123,7 +143,7 @@ const getAudioUintArray = async (blob) => {
     const audioArrayBuffer = await blob.arrayBuffer();
     return new Uint8Array(audioArrayBuffer);
 };
-
+//dynamically injects download button into the DOM
 const addDownloadButton = () => {
     const targets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem, .listenEngagement__footer');
     targets.forEach(target => {

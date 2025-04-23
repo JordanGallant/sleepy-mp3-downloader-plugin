@@ -2,20 +2,20 @@ To Dos
 ---------------------------
 Spotify downloader?
 User ID might Expire?
-Bull MQ?
+Allow Multiple Downloads? - BullMQ?
 Download History?
-Better Soundcloud Images?
+Add Album | Unkown album
+Fix Artisit names/
 ---------------------------
 
 Known Errors:
 Fritz Schnackenpfefferhausen -> downloads for any song by this user do not work -> conversion error
-
-Commands:
-tcpdump -i any port 3000 -A
-ngrep -d any -q -W byline port 3000
+bug wen stoped a download in the middle
+Dosnt work In all playlists
 
 ---------------------------
 Finished ToDos:
-Progress of Download
+Track Progress of Download
 Server Logging 
+Better Soundcloud Images
 ---------------------------
