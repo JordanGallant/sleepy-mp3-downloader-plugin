@@ -1,104 +1,71 @@
 import { ID3Writer } from 'browser-id3-writer'; // metadata writer 
 
-
 const createDownloadButton = (trackElement) => {
-
     const btn = document.createElement('button');
     btn.innerText = 'Download';
     btn.className = 'my-sc-download-btn';
     btn.style.marginLeft = '10px';
     btn.style.background = '#FF5500';
-    btn.style.borderRadius = '10px'
+    btn.style.borderRadius = '10px';
     btn.style.color = 'white';
 
     btn.onclick = async () => {
         chrome.runtime.sendMessage({ action: "showPopup" });
         btn.innerText = 'Processing...';
         btn.disabled = true;
+        
+        const CLIENT_ID = "client_id=EjkRJG0BLNEZquRiPZYdNtJdyGtTuHdp"; //client id needed for authorization, can be repeated, Souncloud is dumb and bad at security
+        const API_URL = "https://api-v2.soundcloud.com/resolve?url="; //very useful url resolver that finds any track from a given playlist url
+        let trackUrl = 'No URL found';
 
-        //url has to be authorized with client ID to get track info -  this can be reused (they suck at security)
-        const CLIENT_ID = "client_id=EjkRJG0BLNEZquRiPZYdNtJdyGtTuHdp";
-        const API_URL = "https://api-v2.soundcloud.com/resolve?url="; //resolves any track from playlist url - very useful
-        let trackUrl = 'No URL found'; //default track url
-
-        //get link from dom objects based off of class name
+        //finds links in DOM elements based off of classes
         if (trackElement.classList.contains('trackItem')) {
             const trackLink = trackElement.querySelector('.trackItem__trackTitle');
             trackUrl = trackLink ? trackLink.href : trackUrl;
-
         } else if (trackElement.classList.contains('listenEngagement__footer')) {
             trackUrl = window.location.href;
         } else if (trackElement.classList.contains('.systemPlaylistBannerItem')) {
             const trackLink = trackElement.querySelector('.selectionPlaylistBanner__artworkLink');
             trackUrl = trackLink ? trackLink.href : trackUrl;
         }
-        // create the url to get the transcoded audio stream
+        //url to find audio transcoded audio streams
         const endUrl = API_URL + trackUrl + "&" + CLIENT_ID;
 
         try {
-            //requeust to api for specific song
             const response = await fetch(endUrl);
-            const data = await response.json(); //convert to json
-
-
-            //find progressive audio stream - wow (i think this slow it down)
+            const data = await response.json();
+            //search for progressive audio stream
             const progressiveTranscoding = data.media.transcodings.find(
                 transcoding => transcoding.format.protocol === "progressive"
             );
             const transcodingUrl = progressiveTranscoding 
                 ? progressiveTranscoding.url + "?" + CLIENT_ID
                 : null;
-            
+
             if (!transcodingUrl) {
-                console.error("No progressive stream found");
                 throw new Error("No progressive stream available for this track");
             }
-            console.log(transcodingUrl);
+            //cache image for metadata - correct the quality
+            const imageSmall = data.artwork_url;
+            const imageURL = imageSmall.replace(/-large\.(png|jpg)/, "-t1080x1080.png");
 
-            //get image for metadata
-            let imageSmall = data.artwork_url; //default image - bad quality
-            const imageURL = imageSmall.replace("-large.png", "-t1080x1080.png")
-
-            //collect information for metadata
-            const trackTitle = data.title; 
-            const trackArtist = data.user.username; 
-            const trackAlbum =  data.publisher_metadata.album_title || "Single" /
-            console.log(trackAlbum)
-            console.log(trackArtist)
-            const trackGenre = data.genre; 
-
-            //get actual audio
+            // Cache metadata for later tagging
+            const trackTitle = data.title;
+            const trackArtist = data.user.username;
+            const trackAlbum = data.publisher_metadata?.album_title || "Unknown Album";
+            const trackGenre = data.genre;
+            
+            //gets audio blob from progressive audio stream url
             const transcodingRes = await fetch(transcodingUrl);
             const transcodingData = await transcodingRes.json();
             const audioRes = await fetch(transcodingData.url);
-            const audioBlob = await audioRes.blob();// untagged audio Blob
+            const audioBlob = await audioRes.blob();
 
-
-            // Get audio and image data objects
-            const audio = await getAudioUintArray(audioBlob);
-            const image = await getImageBlob(imageURL);
-
-            //create metadata writer
-            const writer = new ID3Writer(audio);
-            writer
-                .setFrame('TIT2', trackTitle)
-                .setFrame('TPE1', [trackArtist, ""])
-                .setFrame('TCON', [trackGenre, ""])
-                .setFrame('APIC', {
-                    type: 3,
-                    data: image,
-                    description: 'Cover',
-                });
-            writer.addTag();
-            const taggedBlob = writer.getBlob(); //tagged
-            console.log(taggedBlob)
-
-
-            // create payload to send to API
+            // creates payload to send to api
             const formData = new FormData();
-            formData.append('audio', taggedBlob, 'audio.mp3');
+            formData.append('audio', audioBlob, 'audio.mp3');
 
-            //sends audio blob to api at the convert-audio endpoint
+            //send untagged audio blob to API - where it will be converted to 320 kbps 
             const postResponse = await fetch('https://audio-api-6r6z.onrender.com/convert-audio', {
                 method: 'POST',
                 body: formData,
@@ -108,14 +75,32 @@ const createDownloadButton = (trackElement) => {
                 throw new Error("Failed to upload audio");
             }
 
-            // Handle server response -> 320kbs 
-            const convertedBlob = await postResponse.blob();// converts MP3 to blob
-            console.log('Server response:', convertedBlob);
+            // Get converted audio blob
+            const convertedBlob = await postResponse.blob();
+
+            // Now tag the converted audio
+            const convertedAudio = await getAudioUintArray(convertedBlob);
+            const image = await getImageBlob(imageURL);
 
 
+            //create new metadata writer
+            const writer = new ID3Writer(convertedAudio);
+            writer
+                .setFrame('TIT2', trackTitle)
+                .setFrame('TALB', trackAlbum)
+                .setFrame('TPE1', [trackArtist])
+                .setFrame('TALB', trackAlbum)
+                .setFrame('TCON', [trackGenre || ""])
+                .setFrame('APIC', {
+                    type: 3,
+                    data: image,
+                    description: 'Cover',
+                });
+            writer.addTag();
+            const taggedBlob = writer.getBlob();
 
-            //donwload converted & tagged MP3
-            const blobUrl = URL.createObjectURL(convertedBlob);
+            // download the final tagged audio
+            const blobUrl = URL.createObjectURL(taggedBlob);
             const a = document.createElement('a');
             a.href = blobUrl;
             a.setAttribute('download', `${trackTitle}.mp3`);
@@ -123,27 +108,32 @@ const createDownloadButton = (trackElement) => {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(blobUrl);
+
             btn.innerText = 'Done';
         } catch (error) {
             console.error("Error during download process:", error);
+            btn.innerText = 'Failed';
         }
     };
 
     return btn;
 };
-//helper that converts url -> image -> array buffer
+
+// helper: fetches image and returns array buffer so it can be stored in metadata
 const getImageBlob = async (url) => {
     const response = await fetch(url);
     const imageBlob = await response.blob();
     const arrayBuffer = await imageBlob.arrayBuffer();
     return arrayBuffer;
 };
-// helper that converts audio blob -> uint array
+
+// helper: converts aduio blob to Uint8Array so it can be stored in metadata
 const getAudioUintArray = async (blob) => {
     const audioArrayBuffer = await blob.arrayBuffer();
     return new Uint8Array(audioArrayBuffer);
 };
-//dynamically injects download button into the DOM
+
+// dynamically injects buttons into the DOM
 const addDownloadButton = () => {
     const targets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem, .listenEngagement__footer');
     targets.forEach(target => {
@@ -154,4 +144,3 @@ const addDownloadButton = () => {
 };
 
 setInterval(addDownloadButton, 3000);
-

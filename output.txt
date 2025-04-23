@@ -4,18 +4,19 @@ Spotify downloader?
 User ID might Expire?
 Allow Multiple Downloads? - BullMQ?
 Download History?
-Add Album | Unkown album
-Fix Artisit names/
+Feature - Speed Improvemnt - move convert before metadata tagging?
 ---------------------------
 
 Known Errors:
 Fritz Schnackenpfefferhausen -> downloads for any song by this user do not work -> conversion error
 bug wen stoped a download in the middle
-Dosnt work In all playlists
 
 ---------------------------
 Finished ToDos:
 Track Progress of Download
 Server Logging 
 Better Soundcloud Images
+Dosnt work In all playlists -> Can download in all playlists
+Fix Artisit names/
+Add Album | Unkown album
 ---------------------------
