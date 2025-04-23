@@ -7,9 +7,9 @@ const createDownloadButton = (trackElement) => {
     btn.innerText = 'Download';
     btn.className = 'my-sc-download-btn';
     btn.style.marginLeft = '10px';
-    btn.style.background = 'orange';
+    btn.style.background = '#FF5500';
+    btn.style.borderRadius ='10px'
     btn.style.color = 'white';
-    btn.style.padding = '5px';
 
     btn.onclick = async () => {
         btn.innerText = 'Processing...';
@@ -65,11 +65,6 @@ const createDownloadButton = (trackElement) => {
             const taggedBlob = writer.getBlob(); //tagged
             console.log(taggedBlob)
 
-            //need to convert taggedblob to mp3? server confused maybe???
-
-
-                //curl request that works....
-                //curl -X POST -F "audio=@test.mp3" https://audio-api-6r6z.onrender.com/convert-audio --output converted_audio.mp3
 
             // Create Payloud to send to API
             const formData = new FormData();
@@ -87,7 +82,6 @@ const createDownloadButton = (trackElement) => {
             // Handle server response (you can modify this based on your server's response)
             const convertedBlob = await postResponse.blob();
             console.log('Server response:', convertedBlob);
-
 
 
             const blobUrl = URL.createObjectURL(convertedBlob);
