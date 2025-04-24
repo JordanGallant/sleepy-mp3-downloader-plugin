@@ -12,11 +12,14 @@ Most MP3 downloaders are tedious to use and often return low-quality audio — t
    git clone https://github.com/JordanGallant/soundcloud-downloader-plugin.git
    ```
 2. ```bash
-   npx vite build
+    cd soundcloud-downloader-plugin/plugin
    ```
-3. Open your browser extensions page:
+3. ```bash
+    npx vite build
+    ```
+4.  Open your browser extensions page:
    - In Brave (or Chrome): `brave://extensions/` or `chrome://extensions/`
-4. In the top-right corner, enable **Developer mode**.
-5. Click **Load unpacked** and select the location of this repo.
-6. Visit [SoundCloud](https://soundcloud.com), and the plugin will automatically inject into the browser.
+5. In the top-right corner, enable **Developer mode**.
+6. Click **Load unpacked** and select the location of this repo.
+7. Visit [SoundCloud](https://soundcloud.com), and the plugin will automatically inject into the browser.
 
