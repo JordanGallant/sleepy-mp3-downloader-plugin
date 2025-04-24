@@ -18,9 +18,12 @@ Node v20*
     cd soundcloud-downloader-plugin/plugin
    ```
 3. ```bash
+   npm install
+   ```
+4. ```bash
     npx vite build
     ```
-4.  Open your browser extensions page:
+5.  Open your browser extensions page:
    - In Brave (or Chrome): `brave://extensions/` or `chrome://extensions/`
 5. In the top-right corner, enable **Developer mode**.
 6. Click **Load unpacked** and select the location of this repo.
