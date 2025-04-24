@@ -2,18 +2,29 @@
   "manifest_version": 3,
   "name": "SoundCloud Downloader",
   "version": "1.0",
-  "permissions": ["activeTab", "scripting", "downloads", "storage"],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "downloads",
+    "storage"
+  ],
   "host_permissions": [
     "https://soundcloud.com/*",
-    "https://audio-api-6r6z.onrender.com/*"
+    "https://audio-api-6r6z.onrender.com/*",
+    "https://open.spotify.com/*"
   ],
   "background": {
     "service_worker": "service_worker.js"
   },
   "content_scripts": [
     {
-      "matches": ["https://soundcloud.com/*"],
-      "js": ["dist/main.js"],
+      "matches": [
+        "https://soundcloud.com/*",
+        "https://open.spotify.com/*"
+      ],
+      "js": [
+        "dist/main.js"
+      ],
       "type": "module"
     }
   ],

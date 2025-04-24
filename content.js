@@ -1,11 +1,31 @@
 import { ID3Writer } from 'browser-id3-writer'; // metadata writer 
 
-const CLIENT_ID = "client_id=EjkRJG0BLNEZquRiPZYdNtJdyGtTuHdp"; //client id needed for authorization, can be repeated, Souncloud is dumb and bad at security
-const API_URL = "https://api-v2.soundcloud.com/resolve?url="; //very useful url resolver that finds any track from a given playlist url
+const SOUNDCLOUD_CLIENT_ID = "client_id=EjkRJG0BLNEZquRiPZYdNtJdyGtTuHdp"; //client id needed for authorization, can be repeated, Souncloud is dumb and bad at security
+const SOUNDCLOUD_API_URL = "https://api-v2.soundcloud.com/resolve?url="; //very useful url resolver that finds any track from a given playlist url
 const defaultImageURL = "https://images.squarespace-cdn.com/content/v1/57a9f951e6f2e1756d5449ee/1742200459834-CYCOIBSGJO1RM1FX3J4G/DSC_4663.jpg?format=2500w" //if no image from soundcloud show naked lady :p
 
-//create a downlaod all button for playlits
-const createDownloadAllButton = (songElement) => {
+//creates a track download button on spotify
+const createSpotifyDownloadButton = () => {
+    const btn = document.createElement('button');
+    btn.className = 'spotify-button';
+    btn.style.background = '#1DB954';
+    btn.style.marginLeft = '10px';
+    btn.style.borderRadius = '10px';
+    btn.style.color = 'white';
+    btn.style.textAlign = 'center';
+    btn.style.padding = '5px 5px ';
+    btn.innerText = 'Download';
+    
+
+    
+
+
+    return btn
+}
+
+
+//create a downlaod all button for SOUNDCLOUD playlits
+const createDownloadAllButton = (playlistElement) => {
     const btn = document.createElement('button');
     btn.innerText = 'All';
     btn.className = 'all';
@@ -23,7 +43,7 @@ const createDownloadAllButton = (songElement) => {
             
             
             //gets closest element to the button
-            const playlistDetails = songElement.closest('.systemPlaylistDetails');
+            const playlistDetails = playlistElement.closest('.systemPlaylistDetails');
 
             const firstNest = playlistDetails.querySelector('.systemPlaylistTrackList'); //parse nested element
 
@@ -43,14 +63,14 @@ const createDownloadAllButton = (songElement) => {
                 if (!trackUrl) continue; // Skip if structure doesn't exist
 
                 try {
-                    const endUrl = `${API_URL}${trackUrl}&${CLIENT_ID}`;
+                    const endUrl = `${SOUNDCLOUD_API_URL}${trackUrl}&${SOUNDCLOUD_CLIENT_ID}`;
                     const response = await fetch(endUrl);
 
                     const data = await response.json();
                     
                 
                     //set metadata
-                    const streamUrl = await GetStreamURL(data, CLIENT_ID);
+                    const streamUrl = await GetStreamURL(data, SOUNDCLOUD_CLIENT_ID);
                     const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
 
                     const trackTitle = data.title;
@@ -140,12 +160,12 @@ const createDownloadAllButton = (songElement) => {
     return btn;
 }
 
-
-const createDownloadButton = (trackElement) => {
+//donwload individual tracks on soundcloud
+const createSoundCloudDownloadButton = (trackElement) => {
     const btn = document.createElement('button');
 
     btn.innerText = 'Download';
-    btn.className = 'my-sc-download-btn';
+    btn.className = 'soundcloud-button';
     btn.style.marginLeft = '10px';
     btn.style.background = '#FF5500';
     btn.style.borderRadius = '10px';
@@ -157,7 +177,6 @@ const createDownloadButton = (trackElement) => {
         let trackUrl = 'No URL found';
 
         //finds links in DOM elements based off of classes
-
         if (trackElement.classList.contains('trackItem')) {
             const trackLink = trackElement.querySelector('.trackItem__trackTitle');
             trackUrl = trackLink ? trackLink.href : trackUrl;
@@ -168,7 +187,7 @@ const createDownloadButton = (trackElement) => {
             trackUrl = trackLink ? trackLink.href : trackUrl;
         }
         //url to find audio transcoded audio streams
-        const endUrl = API_URL + trackUrl + "&" + CLIENT_ID;
+        const endUrl = SOUNDCLOUD_API_URL + trackUrl + "&" + SOUNDCLOUD_CLIENT_ID;
 
         try {
 
@@ -177,7 +196,7 @@ const createDownloadButton = (trackElement) => {
             const data = await response.json();
 
             //search for progressive audio stream
-            const streamUrl = await GetStreamURL(data, CLIENT_ID);
+            const streamUrl = await GetStreamURL(data, SOUNDCLOUD_CLIENT_ID);
 
             //cache image for metadata - correct the quality
             const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
@@ -285,13 +304,25 @@ const getAudioUintArray = async (blob) => {
     return new Uint8Array(audioArrayBuffer);
 };
 
-// dynamically injects buttons into the DOM
+
+// dynamically injects buttons into the DOM on each soundcloud track
 const observeTrackItems = () => {
     const observer = new MutationObserver(() => { //mutation observer ensures that all elements are injected automattically
-        const targets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem, .listenEngagement__footer');
-        targets.forEach(target => {
-            if (!target.querySelector('.my-sc-download-btn')) {
-                const btn = createDownloadButton(target);
+        const soundcloudTargets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem, .listenEngagement__footer');
+        const spotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"]');
+
+
+        spotifyTargets.forEach(target => {
+            if (!target.querySelector('.spotify-button')) {
+                const btn = createSpotifyDownloadButton();
+                target.appendChild(btn);
+            }
+            console.log("hello")
+        });
+
+        soundcloudTargets.forEach(target => {
+            if (!target.querySelector('.soundcloud-button')) {
+                const btn = createSoundCloudDownloadButton(target);
                 target.appendChild(btn);
             }
         });
@@ -299,11 +330,11 @@ const observeTrackItems = () => {
 
     observer.observe(document.body, { childList: true, subtree: true });
 };
-//download all button shows at the top of the playlist 
+//download all button shows at the top of the soundcloud playlist 
 const observePlaylistControls = () => {
     const observer = new MutationObserver(() => {//mutation observer ensures that all elements are injected automattically
-        const targets = document.querySelectorAll('.systemPlaylistDetails__controls');
-        targets.forEach(target => {
+        const soundcloudTargets = document.querySelectorAll('.systemPlaylistDetails__controls');
+        soundcloudTargets.forEach(target => {
             if (!target.querySelector('.all')) {
                 const btn = createDownloadAllButton(target);
                 target.appendChild(btn);
@@ -329,7 +360,7 @@ function GetStreamURL(data, clientId) {
 //function only allows all OR single donwloads
 const toggleButtons = (isAllDownloading) => {
     const allButton = document.querySelector('.all');
-    const downloadButtons = document.querySelectorAll('.my-sc-download-btn');
+    const downloadButtons = document.querySelectorAll('.soundcloud-button');
 
     if (isAllDownloading) {
         allButton.disabled = false;
@@ -379,5 +410,6 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 observeTrackItems();
 observePlaylistControls();
+
 
 

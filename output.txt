@@ -2,14 +2,13 @@ To Dos
 ---------------------------
 
 
-
+reset percentages to 0 when done % - ux
 
 User ID can be revoked at any time -> scrape userID and parse it dynamically
 
-If more than one trackArtist include all names in metadata
 
 
-Spotify downloader?
+
 
 Stats backend -> keep count of users,downloads,
 can get IP address from request?
@@ -31,7 +30,7 @@ Feature - ui - Track div to be scrollable
 Feature - ui - Number of Tracks to download when downloading all
 Feature - metadata - handle multiple artists
 Feature - ux - open popup when downloading 
-
+Feature - Operational - Download buttons injected into spotify playlists
 
 23rd April 2025
  -
