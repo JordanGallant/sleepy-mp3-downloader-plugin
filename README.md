@@ -6,7 +6,7 @@ This project is a browser extension that injects a SoundCloud downloader directl
 
 Most MP3 downloaders are tedious to use and often return low-quality audio — this tool is designed to solve that.
 
-##Prerequisites
+## Prerequisites
 Node v20*
 
 ## How to use
