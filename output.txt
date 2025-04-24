@@ -27,7 +27,10 @@ Feature - ui - Add tracks downloaded with all - to recent downloads
 Feature - ui - if downloading all disable individual download buttons
 Feature - metadata - default image for metadata
 Feature - ui - Make sure all tracks are loaded in playlist - MutationObserver
+Feature - ui - Make sure all tracks are loaded in playlist - Function - Scroll to Bottom
 Feature - ui - Track div to be scrollable
+Feature - ui - Number of Tracks to download when downloading all
+
 
 23rd April 2025
  -

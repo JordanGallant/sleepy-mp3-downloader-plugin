@@ -21,7 +21,6 @@ const createDownloadAllButton = (songElement) => {
             await scrollToPageBottom() 
             toggleButtons(true);
             
-            btn.innerText = 'Processing...';
             //gets closest element to the button
             const playlistDetails = songElement.closest('.systemPlaylistDetails');
 
@@ -30,9 +29,14 @@ const createDownloadAllButton = (songElement) => {
             const secondNest = firstNest.querySelector('.systemPlaylistTrackList__list') //parse second nest
             const tracks = secondNest.children; //gets li elements from the playlist
             
-            const total = tracks.length;
-            console.log(total)
+            let count = tracks.length;
+            console.log(count)
+
             for (const track of tracks) { // loop through all the tracks
+
+                //displays count of downloads left
+                btn.innerText = `(${count})`
+                count-=1
 
                 const trackUrl = track.children[0]?.children[2]?.children[2]?.href;
                 if (!trackUrl) continue; // Skip if structure doesn't exist
