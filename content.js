@@ -15,11 +15,35 @@ const createSpotifyDownloadButton = () => {
     btn.style.textAlign = 'center';
     btn.style.padding = '5px 5px ';
     btn.innerText = 'Download';
-    
+    btn.onclick = async () => {
+        // Get the parent track element for this specific button
+        const trackElement = btn.closest('[data-testid="tracklist-row"]');
+        if (!trackElement) return;
 
-    
+        // Find the div containing artist info within this specific track
+        const artistContainer = trackElement.querySelector('span.e-9812-text.encore-text-body-small.encore-internal-color-text-subdued .e-9812-text.encore-text-body-small');
 
+        if (artistContainer) {
+            // Extract all artist links
+            const artistLinks = artistContainer.querySelectorAll('a');
+            const artists = [];
 
+            artistLinks.forEach(link => {
+                artists.push(link.textContent);
+            });
+
+            console.log("Artists:", artists.join(", "));
+
+            // Get track title
+            const titleElement = trackElement.querySelector('.e-9812-text.encore-text-body-medium.encore-internal-color-text-base');
+            const trackTitle = titleElement ? titleElement.textContent : "Unknown Track";
+
+            console.log("Track:", trackTitle);
+
+        } else {
+            console.log("Could not find artist information");
+        }
+    };
     return btn
 }
 
@@ -38,10 +62,10 @@ const createDownloadAllButton = (playlistElement) => {
 
     btn.onclick = async () => {
         btn.onclick = async () => {
-            await scrollToPageBottom() 
+            await scrollToPageBottom()
             toggleButtons(true);
-            
-            
+
+
             //gets closest element to the button
             const playlistDetails = playlistElement.closest('.systemPlaylistDetails');
 
@@ -49,7 +73,7 @@ const createDownloadAllButton = (playlistElement) => {
 
             const secondNest = firstNest.querySelector('.systemPlaylistTrackList__list') //parse second nest
             const tracks = secondNest.children; //gets li elements from the playlist
-            
+
             let count = tracks.length;
             console.log(count)
 
@@ -57,7 +81,7 @@ const createDownloadAllButton = (playlistElement) => {
 
                 //displays count of downloads left
                 btn.innerText = `(${count})`
-                count-=1
+                count -= 1
 
                 const trackUrl = track.children[0]?.children[2]?.children[2]?.href;
                 if (!trackUrl) continue; // Skip if structure doesn't exist
@@ -67,14 +91,14 @@ const createDownloadAllButton = (playlistElement) => {
                     const response = await fetch(endUrl);
 
                     const data = await response.json();
-                    
-                
+
+
                     //set metadata
                     const streamUrl = await GetStreamURL(data, SOUNDCLOUD_CLIENT_ID);
                     const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
 
                     const trackTitle = data.title;
-                    const trackArtist = data.publisher_metadata?.artist ||  data.user?.username 
+                    const trackArtist = data.publisher_metadata?.artist || data.user?.username
                     const trackAlbum = data.publisher_metadata?.album_title || "Unknown Album";
                     const trackGenre = data.genre;
 
@@ -172,7 +196,7 @@ const createSoundCloudDownloadButton = (trackElement) => {
     btn.style.color = 'white';
 
     btn.onclick = async () => {
-        toggleButtons(false); 
+        toggleButtons(false);
         btn.innerText = 'Processing...';
         let trackUrl = 'No URL found';
 
@@ -182,15 +206,26 @@ const createSoundCloudDownloadButton = (trackElement) => {
             trackUrl = trackLink ? trackLink.href : trackUrl;
         } else if (trackElement.classList.contains('listenEngagement__footer')) {
             trackUrl = window.location.href;
-        } else if (trackElement.classList.contains('.systemPlaylistBannerItem')) {
+        } else if (trackElement.classList.contains('systemPlaylistBannerItem')) { // Removed the dot
             const trackLink = trackElement.querySelector('.selectionPlaylistBanner__artworkLink');
             trackUrl = trackLink ? trackLink.href : trackUrl;
+        } else if (trackElement.classList.contains('trackList__list')) {
+            // Use trackItem__trackTitle instead of trackItem__separator which isn't a link
+            const trackLink = trackElement.querySelector('.trackItem__trackTitle');
+            trackUrl = trackLink ? trackLink.href : trackUrl;
         }
+
+        // Check if a valid trackUrl was found
+        if (trackUrl === 'No URL found') {
+            console.error('Could not find track URL');
+            btn.innerText = 'Failed';
+            return;
+        }
+
         //url to find audio transcoded audio streams
         const endUrl = SOUNDCLOUD_API_URL + trackUrl + "&" + SOUNDCLOUD_CLIENT_ID;
 
         try {
-
             //fetchURL that has stream data
             const response = await fetch(endUrl);
             const data = await response.json();
@@ -203,7 +238,7 @@ const createSoundCloudDownloadButton = (trackElement) => {
 
             // Cache metadata for later tagging
             const trackTitle = data.title;
-            const trackArtist = data.publisher_metadata?.artist ||  data.user?.username 
+            const trackArtist = data.publisher_metadata?.artist || data.user?.username
             const trackAlbum = data.publisher_metadata?.album_title || "Unknown Album";
             const trackGenre = data.genre;
 
@@ -317,7 +352,6 @@ const observeTrackItems = () => {
                 const btn = createSpotifyDownloadButton();
                 target.appendChild(btn);
             }
-            console.log("hello")
         });
 
         soundcloudTargets.forEach(target => {
@@ -363,19 +397,34 @@ const toggleButtons = (isAllDownloading) => {
     const downloadButtons = document.querySelectorAll('.soundcloud-button');
 
     if (isAllDownloading) {
-        allButton.disabled = false;
+        // Check if allButton exists before setting disabled property
+        if (allButton) {
+            allButton.disabled = false;
+        }
+        
+        // Only modify buttons that exist
         downloadButtons.forEach(btn => {
-            btn.disabled = true;
-            btn.innerText = 'Disabled';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Disabled';
+            }
         });
     } else {
-        allButton.disabled = true;
-        allButton.innerText = 'Disabled';
+        // Check if allButton exists before setting disabled property
+        if (allButton) {
+            allButton.disabled = true;
+            allButton.innerText = 'Disabled';
+        }
+        
+        // Only modify buttons that exist
         downloadButtons.forEach(btn => {
-            btn.disabled = false;
+            if (btn) {
+                btn.disabled = false;
+            }
         });
     }
 };
+
 
 //soundcloud = lazy loaded -> make sure all content is loaded ->  automatically scrolls to the bottom 
 async function scrollToPageBottom(timeout = 1000, maxAttempts = 3) {
