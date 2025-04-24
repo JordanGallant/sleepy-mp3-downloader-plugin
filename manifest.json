@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "SoundCloud Downloader",
+  "name": "Sleepy MP3 Downloader",
   "version": "1.0",
   "permissions": [
     "activeTab",
