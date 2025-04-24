@@ -2,13 +2,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const progressContainer = document.getElementById("track-progress");
   const titlesContainer = document.getElementById("titles-container");
 
-  // Create progress element
+  // create progress element
   const progressElement = document.createElement("p");
   progressElement.id = "progress-text";
   progressElement.textContent = "0%";
   progressContainer.appendChild(progressElement);
 
-  // Connect to the service worker
+  // connect to the service worker -> sees if popup is showing
   const port = chrome.runtime.connect({name: "popup"});
   
   // gets progress form service worker (4)
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const reversedTitles = message.titles.reverse();
 
       
-      // create elements for each titles
+      // create elements for each title
       reversedTitles.forEach((title) => {
         const titleElement = document.createElement("p");
         titleElement.textContent = title;
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Check if there's a stored progress value to display
+  // gets progress from local storage (flex)
   chrome.storage.local.get("percent", (data) => {
     if (data.percent) {
       progressElement.textContent = `${data.percent}%`;
