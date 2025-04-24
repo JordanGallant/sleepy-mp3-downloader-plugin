@@ -2,7 +2,7 @@ import { ID3Writer } from 'browser-id3-writer'; // metadata writer
 
 const CLIENT_ID = "client_id=EjkRJG0BLNEZquRiPZYdNtJdyGtTuHdp"; //client id needed for authorization, can be repeated, Souncloud is dumb and bad at security
 const API_URL = "https://api-v2.soundcloud.com/resolve?url="; //very useful url resolver that finds any track from a given playlist url
-
+const defaultImageURL = "https://images.squarespace-cdn.com/content/v1/57a9f951e6f2e1756d5449ee/1742200459834-CYCOIBSGJO1RM1FX3J4G/DSC_4663.jpg?format=2500w" //if no image from soundcloud show naked lady :p
 
 //create a downlaod all button for playlits
 const createDownloadAllButton = (songElement) => {
@@ -41,7 +41,7 @@ const createDownloadAllButton = (songElement) => {
 
                     //set metadata
                     const streamUrl = await GetStreamURL(data, CLIENT_ID);
-                    const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png");
+                    const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
                     console.log(streamUrl)
 
                     const trackTitle = data.title;
@@ -173,8 +173,7 @@ const createDownloadButton = (trackElement) => {
             const streamUrl = await GetStreamURL(data, CLIENT_ID);
             console.log(streamUrl);
             //cache image for metadata - correct the quality
-            const imageSmall = data.artwork_url;
-            const imageURL = imageSmall.replace(/-large\.(png|jpg)/, "-t1080x1080.png");
+            const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
 
             // Cache metadata for later tagging
             const trackTitle = data.title;
