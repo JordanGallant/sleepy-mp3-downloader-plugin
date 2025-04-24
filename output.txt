@@ -2,13 +2,12 @@ To Dos
 ---------------------------
 
 
-count for downloads left when downloading all
+
 
 User ID can be revoked at any time -> scrape userID and parse it dynamically
 
 If more than one trackArtist include all names in metadata
 
-Add artist to tracks in recent downlaods
 
 Spotify downloader?
 move the track progress to button?
@@ -30,6 +29,7 @@ Feature - ui - Make sure all tracks are loaded in playlist - MutationObserver
 Feature - ui - Make sure all tracks are loaded in playlist - Function - Scroll to Bottom
 Feature - ui - Track div to be scrollable
 Feature - ui - Number of Tracks to download when downloading all
+Feature - edgecase - handle multiple artists
 
 
 23rd April 2025

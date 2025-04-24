@@ -46,13 +46,14 @@ const createDownloadAllButton = (songElement) => {
                     const response = await fetch(endUrl);
 
                     const data = await response.json();
+                    
                 
                     //set metadata
                     const streamUrl = await GetStreamURL(data, CLIENT_ID);
                     const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
 
                     const trackTitle = data.title;
-                    const trackArtist = data.user.username;
+                    const trackArtist = data.publisher_metadata?.artist ||  data.user?.username 
                     const trackAlbum = data.publisher_metadata?.album_title || "Unknown Album";
                     const trackGenre = data.genre;
 
@@ -104,7 +105,7 @@ const createDownloadAllButton = (songElement) => {
                     writer
                         .setFrame('TIT2', trackTitle)
                         .setFrame('TALB', trackAlbum)
-                        .setFrame('TPE1', [trackArtist])
+                        .setFrame('TPE1', [trackArtist]) // can be multiple
                         .setFrame('TALB', trackAlbum)
                         .setFrame('TCON', [trackGenre || ""])
                         .setFrame('APIC', {
@@ -174,14 +175,16 @@ const createDownloadButton = (trackElement) => {
             //fetchURL that has stream data
             const response = await fetch(endUrl);
             const data = await response.json();
+
             //search for progressive audio stream
             const streamUrl = await GetStreamURL(data, CLIENT_ID);
+            
             //cache image for metadata - correct the quality
             const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
 
             // Cache metadata for later tagging
             const trackTitle = data.title;
-            const trackArtist = data.user.username;
+            const trackArtist = data.publisher_metadata?.artist ||  data.user?.username 
             const trackAlbum = data.publisher_metadata?.album_title || "Unknown Album";
             const trackGenre = data.genre;
 
