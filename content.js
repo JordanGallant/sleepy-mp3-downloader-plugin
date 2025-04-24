@@ -18,8 +18,8 @@ const createDownloadAllButton = (songElement) => {
 
     btn.onclick = async () => {
         btn.onclick = async () => {
-
-
+            toggleButtons(true);
+            
             btn.innerText = 'Processing...';
             //gets closest element to the button
             const playlistDetails = songElement.closest('.systemPlaylistDetails');
@@ -54,6 +54,19 @@ const createDownloadAllButton = (songElement) => {
                     const transcodingData = await transcodingRes.json();
                     const audioRes = await fetch(transcodingData.url);
                     const audioBlob = await audioRes.blob();
+
+                    const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
+
+
+                    // append track title if not already-> checks if not there (2)
+                    if (!existingTitles.includes(trackTitle)) {
+                        existingTitles.push(trackTitle);
+                        localStorage.setItem('trackTitles', JSON.stringify(existingTitles));
+                    }
+
+                    console.log('Updated trackTitles:', existingTitles);
+                    //sednds titles to service_worker (3)
+                    chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
 
                     const id = Date.now().toString();
                     //sends id to service worker (1)
@@ -113,10 +126,6 @@ const createDownloadAllButton = (songElement) => {
                     console.error(`Error processing track: ${trackUrl}`, error);
                 }
             }
-
-
-
-
         };
 
     }
@@ -136,9 +145,8 @@ const createDownloadButton = (trackElement) => {
     btn.style.color = 'white';
 
     btn.onclick = async () => {
-
+        toggleButtons(false);
         btn.innerText = 'Processing...';
-        btn.disabled = true;
 
         let trackUrl = 'No URL found';
 
@@ -186,7 +194,7 @@ const createDownloadButton = (trackElement) => {
             }
 
             console.log('Updated trackTitles:', existingTitles);
-            //sednds titles to service_worker (3)
+            //sends titles to service_worker (3)
             chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
 
             //gets audio blob from progressive audio stream url
@@ -274,22 +282,32 @@ const getAudioUintArray = async (blob) => {
 };
 
 // dynamically injects buttons into the DOM
-const addDownloadButton = () => {
-    const targets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem, .listenEngagement__footer');
-    targets.forEach(target => {
-        if (target.querySelector('.my-sc-download-btn')) return;
-        const btn = createDownloadButton(target);
-        target.appendChild(btn);
+const observeTrackItems = () => {
+    const observer = new MutationObserver(() => { //mutation observer ensures that all elements are injected automattically
+        const targets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem, .listenEngagement__footer');
+        targets.forEach(target => {
+            if (!target.querySelector('.my-sc-download-btn')) {
+                const btn = createDownloadButton(target);
+                target.appendChild(btn);
+            }
+        });
     });
+
+    observer.observe(document.body, { childList: true, subtree: true });
 };
 //download all button shows at the top of the playlist 
-const addDownloadAllButton = () => {
-    const targets = document.querySelectorAll('.systemPlaylistDetails__controls');
-    targets.forEach(target => {
-        if (target.querySelector('.all')) return;
-        const btn = createDownloadAllButton(target);
-        target.appendChild(btn);
+const observePlaylistControls = () => {
+    const observer = new MutationObserver(() => {//mutation observer ensures that all elements are injected automattically
+        const targets = document.querySelectorAll('.systemPlaylistDetails__controls');
+        targets.forEach(target => {
+            if (!target.querySelector('.all')) {
+                const btn = createDownloadAllButton(target);
+                target.appendChild(btn);
+            }
+        });
     });
+
+    observer.observe(document.body, { childList: true, subtree: true });
 };
 //reusable: function to get streamURL 
 function GetStreamURL(data, clientId) {
@@ -304,11 +322,33 @@ function GetStreamURL(data, clientId) {
     return `${progressiveTranscoding.url}?${clientId}`;
 }
 
+//function only allows all OR single donwloads
+const toggleButtons = (isAllDownloading) => {
+    const allButton = document.querySelector('.all');
+    const downloadButtons = document.querySelectorAll('.my-sc-download-btn');
+
+    if (isAllDownloading) {
+        allButton.disabled = false;
+        downloadButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.innerText = 'Disabled';
+        });
+    } else {
+        allButton.disabled = true;
+        allButton.innerText = 'Disabled';
+        downloadButtons.forEach(btn => {
+            btn.disabled = false;
+        });
+    }
+};
+
+
 //sleep function to delay processes
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 
-setInterval(addDownloadAllButton, 5000);
-setInterval(addDownloadButton, 3000);
+
+observeTrackItems();
+observePlaylistControls();
 
 

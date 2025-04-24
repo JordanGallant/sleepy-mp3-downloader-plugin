@@ -1,13 +1,16 @@
 To Dos
 ---------------------------
 
-Download entire playlsits?
+Make sure all tracks are loaded in playlist?
 
+track divs to be scrollable
+
+count for downloads left when downloading all
 
 User ID can be revoked at any time -> scrape userID and parse it dynamically
 
 If more than one trackArtist include all names in metadata
-Make sure all tracks are loaded in playlist?
+
 Add artist to tracks in recent downlaods
 
 Spotify downloader?
@@ -19,6 +22,12 @@ can get IP address from request?
 ---------------------------
 
 Finished ToDos:
+
+24th April 2025
+-
+Feature - Download entire playlsits
+add tracks downloaded with all - to recent downloads
+if downloading all disable individual download buttons
 
 23rd April 2025
  -
@@ -32,6 +41,8 @@ Feature - Speed Improvemnt - move convert before metadata tagging?
 Feature- Dynamic Ids - to allow multiple process tracking
 Feature - UI - show current song that is being download
 Store download recent history in content.html
+
+
 ---------------------------
 
 
