@@ -1,9 +1,6 @@
 To Dos
 ---------------------------
 
-Make sure all tracks are loaded in playlist?
-
-track divs to be scrollable
 
 count for downloads left when downloading all
 
@@ -25,9 +22,12 @@ Finished ToDos:
 
 24th April 2025
 -
-Feature - Download entire playlsits
-add tracks downloaded with all - to recent downloads
-if downloading all disable individual download buttons
+Feature - function - Download entire playlsits
+Feature - ui - Add tracks downloaded with all - to recent downloads
+Feature - ui - if downloading all disable individual download buttons
+Feature - metadata - default image for metadata
+Feature - ui - Make sure all tracks are loaded in playlist - MutationObserver
+Feature - ui - Track div to be scrollable
 
 23rd April 2025
  -
@@ -39,8 +39,8 @@ Fix Artisit names/
 Add Album | Unkown album
 Feature - Speed Improvemnt - move convert before metadata tagging?
 Feature- Dynamic Ids - to allow multiple process tracking
-Feature - UI - show current song that is being download
-Store download recent history in content.html
+Feature - ui - show current song that is being download
+Feature - ui - Store download recent history in content.html
 
 
 ---------------------------

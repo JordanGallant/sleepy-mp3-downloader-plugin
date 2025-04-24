@@ -18,6 +18,7 @@ const createDownloadAllButton = (songElement) => {
 
     btn.onclick = async () => {
         btn.onclick = async () => {
+            await scrollToPageBottom() 
             toggleButtons(true);
             
             btn.innerText = 'Processing...';
@@ -28,7 +29,11 @@ const createDownloadAllButton = (songElement) => {
 
             const secondNest = firstNest.querySelector('.systemPlaylistTrackList__list') //parse second nest
             const tracks = secondNest.children; //gets li elements from the playlist
+            
+            const total = tracks.length;
+            console.log(total)
             for (const track of tracks) { // loop through all the tracks
+
                 const trackUrl = track.children[0]?.children[2]?.children[2]?.href;
                 if (!trackUrl) continue; // Skip if structure doesn't exist
 
@@ -37,12 +42,10 @@ const createDownloadAllButton = (songElement) => {
                     const response = await fetch(endUrl);
 
                     const data = await response.json();
-                    console.log(data)
-
+                
                     //set metadata
                     const streamUrl = await GetStreamURL(data, CLIENT_ID);
                     const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
-                    console.log(streamUrl)
 
                     const trackTitle = data.title;
                     const trackArtist = data.user.username;
@@ -64,7 +67,6 @@ const createDownloadAllButton = (songElement) => {
                         localStorage.setItem('trackTitles', JSON.stringify(existingTitles));
                     }
 
-                    console.log('Updated trackTitles:', existingTitles);
                     //sednds titles to service_worker (3)
                     chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
 
@@ -119,7 +121,6 @@ const createDownloadAllButton = (songElement) => {
                     document.body.removeChild(a);
                     URL.revokeObjectURL(blobUrl);
 
-                    console.log(convertedBlob);
                     await sleep(500);
 
                 } catch (error) {
@@ -171,7 +172,6 @@ const createDownloadButton = (trackElement) => {
             const data = await response.json();
             //search for progressive audio stream
             const streamUrl = await GetStreamURL(data, CLIENT_ID);
-            console.log(streamUrl);
             //cache image for metadata - correct the quality
             const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
 
@@ -192,7 +192,6 @@ const createDownloadButton = (trackElement) => {
                 localStorage.setItem('trackTitles', JSON.stringify(existingTitles));
             }
 
-            console.log('Updated trackTitles:', existingTitles);
             //sends titles to service_worker (3)
             chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
 
@@ -216,7 +215,6 @@ const createDownloadButton = (trackElement) => {
                 method: 'POST',
                 body: formData,
             });
-            console.log(postResponse)
 
             if (!postResponse.ok) {
                 throw new Error("Failed to upload audio");
@@ -340,6 +338,31 @@ const toggleButtons = (isAllDownloading) => {
         });
     }
 };
+
+//soundcloud = lazy loaded -> make sure all content is loaded ->  automatically scrolls to the bottom 
+async function scrollToPageBottom(timeout = 1000, maxAttempts = 3) {
+    let lastHeight = 0;
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+        const currentHeight = document.body.scrollHeight;
+
+        window.scrollTo({
+            top: currentHeight,
+            behavior: 'smooth'
+        });
+
+        await sleep(timeout); // waits 1 seconds
+
+        if (document.body.scrollHeight === lastHeight) {
+            break; // if no new content is loaded-> done checking
+        }
+
+        lastHeight = document.body.scrollHeight;
+        attempts++;
+    }
+}
+
 
 
 //sleep function to delay processes
