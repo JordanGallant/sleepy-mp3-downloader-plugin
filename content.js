@@ -21,6 +21,7 @@ const createDownloadAllButton = (songElement) => {
             await scrollToPageBottom() 
             toggleButtons(true);
             
+            
             //gets closest element to the button
             const playlistDetails = songElement.closest('.systemPlaylistDetails');
 
@@ -151,9 +152,8 @@ const createDownloadButton = (trackElement) => {
     btn.style.color = 'white';
 
     btn.onclick = async () => {
-        toggleButtons(false);
+        toggleButtons(false); 
         btn.innerText = 'Processing...';
-
         let trackUrl = 'No URL found';
 
         //finds links in DOM elements based off of classes
@@ -178,7 +178,7 @@ const createDownloadButton = (trackElement) => {
 
             //search for progressive audio stream
             const streamUrl = await GetStreamURL(data, CLIENT_ID);
-            
+
             //cache image for metadata - correct the quality
             const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
 

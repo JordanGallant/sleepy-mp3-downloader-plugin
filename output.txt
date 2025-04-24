@@ -10,7 +10,7 @@ If more than one trackArtist include all names in metadata
 
 
 Spotify downloader?
-move the track progress to button?
+
 Stats backend -> keep count of users,downloads,
 can get IP address from request?
 
@@ -29,7 +29,8 @@ Feature - ui - Make sure all tracks are loaded in playlist - MutationObserver
 Feature - ui - Make sure all tracks are loaded in playlist - Function - Scroll to Bottom
 Feature - ui - Track div to be scrollable
 Feature - ui - Number of Tracks to download when downloading all
-Feature - edgecase - handle multiple artists
+Feature - metadata - handle multiple artists
+Feature - ux - open popup when downloading 
 
 
 23rd April 2025

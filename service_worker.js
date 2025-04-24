@@ -1,6 +1,6 @@
 // In service_worker.js
 let latestProgress = "0.00";
-let id = ""; 
+let id = "";
 let evtSource;
 let titles = null;
 let popupConnected = false;
@@ -11,7 +11,7 @@ chrome.runtime.onConnect.addListener((port) => {
   if (port.name === "popup") {
     popupConnected = true;
     popupPort = port;
-    
+
     // send titles to popup
     if (titles) {
       port.postMessage({
@@ -19,7 +19,7 @@ chrome.runtime.onConnect.addListener((port) => {
         titles: titles
       });
     }
-    
+
     // sends progress to popup
     if (latestProgress) {
       port.postMessage({
@@ -27,7 +27,7 @@ chrome.runtime.onConnect.addListener((port) => {
         percent: latestProgress
       });
     }
-    
+
     // disconnect -> popup is closed
     port.onDisconnect.addListener(() => {
       popupConnected = false;
@@ -49,7 +49,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     evtSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
       latestProgress = data.percent;
-      
+
       // send to popup.js if loaded (3)
       if (popupConnected && popupPort) {
         popupPort.postMessage({
@@ -67,7 +67,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // Gets titles from content.js(4)
   if (request.action === "sendTitles") {
     titles = request.titles;
-    
+
     //  sends titles to popup.js (5)
     if (popupConnected && popupPort) {
       popupPort.postMessage({
@@ -75,8 +75,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         titles: titles
       });
     }
-    
+    chrome.action.openPopup()
     // Log titles for debugging
     console.log("Received titles:", titles);
   }
+
 });
+
