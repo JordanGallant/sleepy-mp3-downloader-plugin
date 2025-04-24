@@ -61,128 +61,173 @@ const createDownloadAllButton = (playlistElement) => {
     btn.style.textAlign = 'center';
 
     btn.onclick = async () => {
-        btn.onclick = async () => {
-            await scrollToPageBottom()
-            toggleButtons(true);
+        await scrollToPageBottom();
+        toggleButtons(true);
 
+        let tracks = [];
 
-            //gets closest element to the button
+        // Handle different playlist structures:
+        // 1. Standard playlist structure
+        if (playlistElement.closest('.systemPlaylistDetails')) {
             const playlistDetails = playlistElement.closest('.systemPlaylistDetails');
-
-            const firstNest = playlistDetails.querySelector('.systemPlaylistTrackList'); //parse nested element
-
-            const secondNest = firstNest.querySelector('.systemPlaylistTrackList__list') //parse second nest
-            const tracks = secondNest.children; //gets li elements from the playlist
-
-            let count = tracks.length;
-            console.log(count)
-
-            for (const track of tracks) { // loop through all the tracks
-
-                //displays count of downloads left
-                btn.innerText = `(${count})`
-                count -= 1
-
-                const trackUrl = track.children[0]?.children[2]?.children[2]?.href;
-                if (!trackUrl) continue; // Skip if structure doesn't exist
-
-                try {
-                    const endUrl = `${SOUNDCLOUD_API_URL}${trackUrl}&${SOUNDCLOUD_CLIENT_ID}`;
-                    const response = await fetch(endUrl);
-
-                    const data = await response.json();
-
-
-                    //set metadata
-                    const streamUrl = await GetStreamURL(data, SOUNDCLOUD_CLIENT_ID);
-                    const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
-
-                    const trackTitle = data.title;
-                    const trackArtist = data.publisher_metadata?.artist || data.user?.username
-                    const trackAlbum = data.publisher_metadata?.album_title || "Unknown Album";
-                    const trackGenre = data.genre;
-
-                    //get audio blob from url
-                    const transcodingRes = await fetch(streamUrl);
-                    const transcodingData = await transcodingRes.json();
-                    const audioRes = await fetch(transcodingData.url);
-                    const audioBlob = await audioRes.blob();
-
-                    const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
-
-
-                    // append track title if not already-> checks if not there (2)
-                    if (!existingTitles.includes(trackTitle)) {
-                        existingTitles.push(trackTitle);
-                        localStorage.setItem('trackTitles', JSON.stringify(existingTitles));
-                    }
-
-                    //sednds titles to service_worker (3)
-                    chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
-
-                    const id = Date.now().toString();
-                    //sends id to service worker (1)
-                    chrome.runtime.sendMessage({ action: "setId", id: id });
-
-                    //create payload to send to API
-                    const formData = new FormData();
-                    formData.append('audio', audioBlob, 'audio.mp3');
-
-                    const postResponse = await fetch(`https://audio-api-6r6z.onrender.com/convert-audio?id=${id}`, {
-                        method: 'POST',
-                        body: formData,
-                    });
-                    console.log(postResponse)
-
-                    if (!postResponse.ok) {
-                        throw new Error("Failed to upload audio");
-                    }
-
-                    // Get converted audio blob
-                    const convertedBlob = await postResponse.blob();
-
-                    const convertedAudio = await getAudioUintArray(convertedBlob);
-                    const image = await getImageBlob(imageURL);
-
-
-                    //create new metadata writer
-                    const writer = new ID3Writer(convertedAudio);
-                    writer
-                        .setFrame('TIT2', trackTitle)
-                        .setFrame('TALB', trackAlbum)
-                        .setFrame('TPE1', [trackArtist]) // can be multiple
-                        .setFrame('TALB', trackAlbum)
-                        .setFrame('TCON', [trackGenre || ""])
-                        .setFrame('APIC', {
-                            type: 3,
-                            data: image,
-                            description: 'Cover',
-                        });
-                    writer.addTag();
-                    const taggedBlob = writer.getBlob();
-
-                    // download the final tagged audio
-                    const blobUrl = URL.createObjectURL(taggedBlob);
-                    const a = document.createElement('a');
-                    a.href = blobUrl;
-                    a.setAttribute('download', `${trackTitle}.mp3`);
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(blobUrl);
-
-                    await sleep(500);
-
-                } catch (error) {
-                    console.error(`Error processing track: ${trackUrl}`, error);
+            const firstNest = playlistDetails.querySelector('.systemPlaylistTrackList');
+            if (firstNest) {
+                const secondNest = firstNest.querySelector('.systemPlaylistTrackList__list');
+                if (secondNest) {
+                    tracks = Array.from(secondNest.children); // gets li elements from the playlist
                 }
             }
-        };
+        }
+        // 2. Listen details structure (new use case)
+        else if (document.querySelector('.listenDetails__trackList')) {
+            const trackList = document.querySelector('.listenDetails__trackList');
+            if (trackList) {
+                const trackItems = trackList.querySelectorAll('.trackItem');
+                if (trackItems.length > 0) {
+                    tracks = Array.from(trackItems);
+                }
+            }
+        }
+        // 3. Listen engagement footer case
+        else if (playlistElement.classList.contains('listenEngagement__footer')) {
+            const trackItems = document.querySelectorAll('.trackItem');
+            tracks = Array.from(trackItems);
+        }
 
-    }
+        let count = tracks.length;
+        console.log(`Found ${count} tracks to download`);
+
+        if (count === 0) {
+            btn.innerText = 'No tracks found';
+            setTimeout(() => {
+                btn.innerText = 'All';
+                toggleButtons(false);
+            }, 2000);
+            return;
+        }
+
+        for (const track of tracks) {
+            // displays count of downloads left
+            btn.innerText = `(${count})`;
+            count -= 1;
+
+            let trackUrl;
+            // Handle different track structures
+            if (track.classList.contains('trackItem')) {
+                const trackLink = track.querySelector('.trackItem__trackTitle');
+                trackUrl = trackLink ? trackLink.href : null;
+            } else {
+                // For playlist tracks with different structure
+                const possibleLink = track.querySelector('a[href*="soundcloud.com"]');
+                if (possibleLink) {
+                    trackUrl = possibleLink.href;
+                } else {
+                    // Try deeper nested elements if direct link not found
+                    trackUrl = track.children[0]?.children[2]?.children[2]?.href;
+                }
+            }
+
+            if (!trackUrl) {
+                console.log("No URL found for track, skipping");
+                continue; // Skip if no URL found
+            }
+
+            try {
+                const endUrl = `${SOUNDCLOUD_API_URL}${trackUrl}&${SOUNDCLOUD_CLIENT_ID}`;
+                const response = await fetch(endUrl);
+                const data = await response.json();
+
+                // set metadata
+                const streamUrl = await GetStreamURL(data, SOUNDCLOUD_CLIENT_ID);
+                const imageURL = data.artwork_url?.replace(/-large\.(png|jpg)/, "-t1080x1080.png") || defaultImageURL;
+
+                const trackTitle = data.title;
+                const trackArtist = data.publisher_metadata?.artist || data.user?.username;
+                const trackAlbum = data.publisher_metadata?.album_title || "Unknown Album";
+                const trackGenre = data.genre;
+
+                // get audio blob from url
+                const transcodingRes = await fetch(streamUrl);
+                const transcodingData = await transcodingRes.json();
+                const audioRes = await fetch(transcodingData.url);
+                const audioBlob = await audioRes.blob();
+
+                const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
+
+                // append track title if not already-> checks if not there (2)
+                if (!existingTitles.includes(trackTitle)) {
+                    existingTitles.push(trackTitle);
+                    localStorage.setItem('trackTitles', JSON.stringify(existingTitles));
+                }
+
+                // sends titles to service_worker (3)
+                chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
+
+                const id = Date.now().toString();
+                // sends id to service worker (1)
+                chrome.runtime.sendMessage({ action: "setId", id: id });
+
+                // create payload to send to API
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'audio.mp3');
+
+                const postResponse = await fetch(`https://audio-api-6r6z.onrender.com/convert-audio?id=${id}`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!postResponse.ok) {
+                    throw new Error("Failed to upload audio");
+                }
+
+                // Get converted audio blob
+                const convertedBlob = await postResponse.blob();
+
+                const convertedAudio = await getAudioUintArray(convertedBlob);
+                const image = await getImageBlob(imageURL);
+
+                // create new metadata writer
+                const writer = new ID3Writer(convertedAudio);
+                writer
+                    .setFrame('TIT2', trackTitle)
+                    .setFrame('TALB', trackAlbum)
+                    .setFrame('TPE1', [trackArtist]) // can be multiple
+                    .setFrame('TCON', [trackGenre || ""])
+                    .setFrame('APIC', {
+                        type: 3,
+                        data: image,
+                        description: 'Cover',
+                    });
+                writer.addTag();
+                const taggedBlob = writer.getBlob();
+
+                // download the final tagged audio
+                const blobUrl = URL.createObjectURL(taggedBlob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.setAttribute('download', `${trackTitle}.mp3`);
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(blobUrl);
+
+                await sleep(500);
+
+            } catch (error) {
+                console.error(`Error processing track: ${trackUrl}`, error);
+            }
+        }
+
+        // Reset button state after processing all tracks
+        btn.innerText = 'Done';
+        setTimeout(() => {
+            btn.innerText = 'All';
+            toggleButtons(false);
+        }, 2000);
+    };
 
     return btn;
-}
+};
 
 //donwload individual tracks on soundcloud
 const createSoundCloudDownloadButton = (trackElement) => {
@@ -343,7 +388,7 @@ const getAudioUintArray = async (blob) => {
 // dynamically injects buttons into the DOM on each soundcloud track
 const observeTrackItems = () => {
     const observer = new MutationObserver(() => { //mutation observer ensures that all elements are injected automattically
-        const soundcloudTargets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem, .listenEngagement__footer');
+        const soundcloudTargets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem');
         const spotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"]');
 
 
@@ -366,12 +411,21 @@ const observeTrackItems = () => {
 };
 //download all button shows at the top of the soundcloud playlist 
 const observePlaylistControls = () => {
-    const observer = new MutationObserver(() => {//mutation observer ensures that all elements are injected automattically
-        const soundcloudTargets = document.querySelectorAll('.systemPlaylistDetails__controls');
+    const observer = new MutationObserver(() => {
+        // Add .listenDetails__trackList to the selector list
+        const soundcloudTargets = document.querySelectorAll('.systemPlaylistDetails__controls, .listenEngagement__footer, .listenDetails__content');
         soundcloudTargets.forEach(target => {
             if (!target.querySelector('.all')) {
                 const btn = createDownloadAllButton(target);
-                target.appendChild(btn);
+                
+                // Find the appropriate place to insert the button
+                if (target.classList.contains('listenDetails__content')) {
+                    // For the new use case, find a good container for the button
+                    const controlContainer = target.querySelector('.listenDetails__tracklistControls') || target;
+                    controlContainer.appendChild(btn);
+                } else {
+                    target.appendChild(btn);
+                }
             }
         });
     });
@@ -401,7 +455,7 @@ const toggleButtons = (isAllDownloading) => {
         if (allButton) {
             allButton.disabled = false;
         }
-        
+
         // Only modify buttons that exist
         downloadButtons.forEach(btn => {
             if (btn) {
@@ -415,7 +469,7 @@ const toggleButtons = (isAllDownloading) => {
             allButton.disabled = true;
             allButton.innerText = 'Disabled';
         }
-        
+
         // Only modify buttons that exist
         downloadButtons.forEach(btn => {
             if (btn) {
@@ -427,7 +481,7 @@ const toggleButtons = (isAllDownloading) => {
 
 
 //soundcloud = lazy loaded -> make sure all content is loaded ->  automatically scrolls to the bottom 
-async function scrollToPageBottom(timeout = 1000, maxAttempts = 3) {
+async function scrollToPageBottom(timeout = 1000, maxAttempts = 30) {
     let lastHeight = 0;
     let attempts = 0;
 
