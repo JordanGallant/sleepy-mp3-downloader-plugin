@@ -18,9 +18,10 @@ reset percentages to 0 when done % - ux
 Finished ToDos:
 25th April 2025
 -
-Feature - metadata - get images from Spotify 
-Feature - metadat - get album name from Spotify
-Feature - Downlaod tracks from Spotify - UI 
+Feature - Spotify - metadata - get images from Spotify 
+Feature - Spotify - metadats - get album name from Spotify
+Feature - Spotify - metadata - add image, artists, track name to mp3 
+Feature - Spotify - Downlaod tracks from Spotify - UI 
 Feature API - Download endpoint - downloads and converts to 320 then sends it back to client
 
 24th April 2025
