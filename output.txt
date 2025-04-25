@@ -1,11 +1,13 @@
 To Dos
 ---------------------------
-Spotify simultaneous Downloads
-Spotify Progress tracking?
+
+
+Spotify Progress tracking? -> different way
 [1]Option to download as zip ?-> JSZip 
-Spotify download button usecases ?
-donwload spotify playlists?
+Spotify download button usecases ? -> show correcrly in different playlist types
+donwload all button in spotify playlists?
 work on Bandcamp?
+Youtube API key has a quota -> figure out a way to refresh keys
 User ID can be revoked at any time -> scrape userID and parse it dynamically
 ----------------------------
 UI
@@ -18,6 +20,8 @@ reset percentages to 0 when done % - ux
 Finished ToDos:
 25th April 2025
 -
+Feature - Spotify - show recent download history in popup
+Feature - Spotify - simultaneous Downloads
 Feature - Spotify - metadata - get images from Spotify 
 Feature - Spotify - metadats - get album name from Spotify
 Feature - Spotify - metadata - add image, artists, track name to mp3 

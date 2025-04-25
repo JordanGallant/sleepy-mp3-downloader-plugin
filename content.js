@@ -16,6 +16,7 @@ const createSpotifyDownloadButton = () => {
     btn.style.padding = '5px 5px ';
     btn.innerText = 'Download';
     btn.onclick = async () => {
+        btn.innerText = 'Processing...';
         // get the parent track element for this specific button
         const trackElement = btn.closest('[data-testid="tracklist-row"]');
         if (!trackElement) return;
@@ -51,6 +52,22 @@ const createSpotifyDownloadButton = () => {
             let output = `Song: ${trackTitle} Artists: ${trackArtist}` // use this for metafdata
             let urlEncodedQuery = encodeURIComponent(output) // url encode payload
 
+            //service worker logic
+            const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
+
+                // append track title if not already-> checks if not there (2)
+                if (!existingTitles.includes(trackTitle)) {
+                    existingTitles.push(trackTitle);
+                    localStorage.setItem('trackTitles', JSON.stringify(existingTitles));
+                }
+
+                // sends titles to service_worker (3)
+                chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
+
+                //creates unique ID used to track progress
+                const id = Date.now().toString();
+                // sends id to service worker (1)
+                chrome.runtime.sendMessage({ action: "setId", id: id });
 
 
             //Track Genre ? not include in spotify downloads
@@ -70,7 +87,7 @@ const createSpotifyDownloadButton = () => {
 
             // send to api to download
             const videoId = data.videoId
-            postResponse = await fetch('https://audio-api-6r6z.onrender.com/download', {
+            postResponse = await fetch(`https://audio-api-6r6z.onrender.com/download?id=${id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -209,6 +226,8 @@ const createDownloadAllButton = (playlistElement) => {
                 const audioRes = await fetch(transcodingData.url);
                 const audioBlob = await audioRes.blob();
 
+
+                //logic for service worker
                 const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
 
                 // append track title if not already-> checks if not there (2)
