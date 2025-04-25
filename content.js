@@ -4,6 +4,29 @@ const SOUNDCLOUD_CLIENT_ID = "client_id=EjkRJG0BLNEZquRiPZYdNtJdyGtTuHdp"; //cli
 const SOUNDCLOUD_API_URL = "https://api-v2.soundcloud.com/resolve?url="; //very useful url resolver that finds any track from a given playlist url
 const defaultImageURL = "https://images.squarespace-cdn.com/content/v1/57a9f951e6f2e1756d5449ee/1742200459834-CYCOIBSGJO1RM1FX3J4G/DSC_4663.jpg?format=2500w" //if no image from soundcloud show naked lady :p
 
+//creates a track download button on bandcamp
+
+const createBandCampDownloadButton = () => {
+    const btn = document.createElement('button');
+    Object.assign(btn.style, {
+        background: '#629aa9',
+        marginLeft: '25px',
+        borderRadius: '6px',
+        color: 'white',
+        textAlign: 'center',
+        padding: '2px 6px',
+        fontSize: '12px',
+        lineHeight: '1.2',
+        cursor: 'pointer',
+        border: 'none'
+    });
+    btn.className = 'bandcamp-button';
+    btn.textContent = 'download';
+    btn.onclick = () => btn.textContent = '...';
+    return btn;
+};
+
+
 //creates a track download button on spotify
 const createSpotifyDownloadButton = () => {
     const btn = document.createElement('button');
@@ -454,7 +477,14 @@ const observeTrackItems = () => {
     const observer = new MutationObserver(() => { //mutation observer ensures that all elements are injected automattically
         const soundcloudTargets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem');
         const spotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"]');
+        const bandcampTargets = document.querySelectorAll('td.download-col')
 
+        bandcampTargets.forEach(target => {
+            if (!target.querySelector('.bandcamp-button')) {
+                const btn = createBandCampDownloadButton();
+                target.appendChild(btn);
+            }
+        });
 
         spotifyTargets.forEach(target => {
             if (!target.querySelector('.spotify-button')) {

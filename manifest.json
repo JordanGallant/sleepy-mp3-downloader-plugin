@@ -11,7 +11,8 @@
   "host_permissions": [
     "https://soundcloud.com/*",
     "https://audio-api-6r6z.onrender.com/*",
-    "https://open.spotify.com/*"
+    "https://open.spotify.com/*",
+    "https://*.bandcamp.com/*"
   ],
   "background": {
     "service_worker": "service_worker.js"
@@ -20,7 +21,8 @@
     {
       "matches": [
         "https://soundcloud.com/*",
-        "https://open.spotify.com/*"
+        "https://open.spotify.com/*",
+        "https://*.bandcamp.com/*"
       ],
       "js": [
         "dist/main.js"
