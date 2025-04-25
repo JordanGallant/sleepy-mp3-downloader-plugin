@@ -16,15 +16,15 @@ const createSpotifyDownloadButton = () => {
     btn.style.padding = '5px 5px ';
     btn.innerText = 'Download';
     btn.onclick = async () => {
-        // Get the parent track element for this specific button
+        // get the parent track element for this specific button
         const trackElement = btn.closest('[data-testid="tracklist-row"]');
         if (!trackElement) return;
 
-        // Find the div containing artist info within this specific track
+        // find the div containing artist info within this specific track
         const artistContainer = trackElement.querySelector('span.e-9812-text.encore-text-body-small.encore-internal-color-text-subdued .e-9812-text.encore-text-body-small');
 
         if (artistContainer) {
-            // Extract all artist links
+            // get artists
             const artistLinks = artistContainer.querySelectorAll('a');
             const artists = [];
 
@@ -32,13 +32,73 @@ const createSpotifyDownloadButton = () => {
                 artists.push(link.textContent);
             });
 
-            console.log("Artists:", artists.join(", "));
 
-            // Get track title
+            // get track title
             const titleElement = trackElement.querySelector('.e-9812-text.encore-text-body-medium.encore-internal-color-text-base');
             const trackTitle = titleElement ? titleElement.textContent : "Unknown Track";
+            //get track image
+            const imageElement = trackElement.querySelector('img.mMx2LUixlnN_Fu45JpFB');
+            const smallUrl = imageElement ? imageElement.src : "";
+            const imageURL = smallUrl.replace("ab67616d00004851", "ab67616d0000b273") || defaultImageURL// neat hack to get larger image 
+            const image = await getImageBlob(imageURL); // convert image to array buffer
+            console.log(image)
+            //get album
+            const albumElement = trackElement.querySelector('div._TH6YAXEzJtzSxhkGSqu [href^="/album/"]');
+            const trackAlbum = albumElement ? albumElement.textContent : "Unknown Album";
+            console.log(trackAlbum)
 
-            console.log("Track:", trackTitle);
+            let trackArtist = artists.join(", ")
+            let output = `Song: ${trackTitle} Artists: ${trackArtist}` // use this for metafdata
+            let urlEncodedQuery = encodeURIComponent(output) // url encode payload
+
+
+
+            //Track Genre ? not include in spotify downloads
+            let trackGenre = ""
+
+            // send urlencoded query to api -> search for song on youtube
+            const getID = await fetch('https://audio-api-6r6z.onrender.com/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+                body: urlEncodedQuery,
+            });
+            //gets videoID from API
+            const data = await getID.json();
+            console.log(data)
+
+            // send to api to download
+            const videoId = data.videoId
+            postResponse = await fetch('https://audio-api-6r6z.onrender.com/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: videoId })
+            })
+            const convertedBlob =  await postResponse.blob()
+            const convertedAudio = await getAudioUintArray(convertedBlob);
+            const taggedBlob = tagAudio({
+                audioBuffer: convertedAudio,
+                title: trackTitle,
+                album: trackAlbum,
+                artist: trackArtist,
+                genre: trackGenre,
+                coverImage: image
+            });
+
+              
+            const blobUrl = URL.createObjectURL(taggedBlob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.setAttribute('download', `${trackTitle}.mp3`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+
+            btn.innerText = 'Done';
 
         } else {
             console.log("Could not find artist information");
@@ -46,7 +106,6 @@ const createSpotifyDownloadButton = () => {
     };
     return btn
 }
-
 
 //create a downlaod all button for SOUNDCLOUD playlits
 const createDownloadAllButton = (playlistElement) => {
@@ -66,8 +125,7 @@ const createDownloadAllButton = (playlistElement) => {
 
         let tracks = [];
 
-        // Handle different playlist structures:
-        // 1. Standard playlist structure
+        // 1. generic playlist structure
         if (playlistElement.closest('.systemPlaylistDetails')) {
             const playlistDetails = playlistElement.closest('.systemPlaylistDetails');
             const firstNest = playlistDetails.querySelector('.systemPlaylistTrackList');
@@ -78,7 +136,7 @@ const createDownloadAllButton = (playlistElement) => {
                 }
             }
         }
-        // 2. Listen details structure (new use case)
+        // 2. personal playlist structure
         else if (document.querySelector('.listenDetails__trackList')) {
             const trackList = document.querySelector('.listenDetails__trackList');
             if (trackList) {
@@ -88,7 +146,7 @@ const createDownloadAllButton = (playlistElement) => {
                 }
             }
         }
-        // 3. Listen engagement footer case
+        // 3. listen engagement footer case
         else if (playlistElement.classList.contains('listenEngagement__footer')) {
             const trackItems = document.querySelectorAll('.trackItem');
             tracks = Array.from(trackItems);
@@ -112,17 +170,16 @@ const createDownloadAllButton = (playlistElement) => {
             count -= 1;
 
             let trackUrl;
-            // Handle different track structures
+            // getting track link
             if (track.classList.contains('trackItem')) {
                 const trackLink = track.querySelector('.trackItem__trackTitle');
                 trackUrl = trackLink ? trackLink.href : null;
             } else {
-                // For playlist tracks with different structure
+
                 const possibleLink = track.querySelector('a[href*="soundcloud.com"]');
                 if (possibleLink) {
                     trackUrl = possibleLink.href;
                 } else {
-                    // Try deeper nested elements if direct link not found
                     trackUrl = track.children[0]?.children[2]?.children[2]?.href;
                 }
             }
@@ -163,6 +220,7 @@ const createDownloadAllButton = (playlistElement) => {
                 // sends titles to service_worker (3)
                 chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
 
+                //creates unique ID used to track progress
                 const id = Date.now().toString();
                 // sends id to service worker (1)
                 chrome.runtime.sendMessage({ action: "setId", id: id });
@@ -187,19 +245,14 @@ const createDownloadAllButton = (playlistElement) => {
                 const image = await getImageBlob(imageURL);
 
                 // create new metadata writer
-                const writer = new ID3Writer(convertedAudio);
-                writer
-                    .setFrame('TIT2', trackTitle)
-                    .setFrame('TALB', trackAlbum)
-                    .setFrame('TPE1', [trackArtist]) // can be multiple
-                    .setFrame('TCON', [trackGenre || ""])
-                    .setFrame('APIC', {
-                        type: 3,
-                        data: image,
-                        description: 'Cover',
-                    });
-                writer.addTag();
-                const taggedBlob = writer.getBlob();
+                const taggedBlob = tagAudio({
+                    audioBuffer: convertedAudio,
+                    title: trackTitle,
+                    album: trackAlbum,
+                    artist: trackArtist,
+                    genre: trackGenre,
+                    coverImage: image
+                });
 
                 // download the final tagged audio
                 const blobUrl = URL.createObjectURL(taggedBlob);
@@ -333,22 +386,14 @@ const createSoundCloudDownloadButton = (trackElement) => {
             const convertedAudio = await getAudioUintArray(convertedBlob);
             const image = await getImageBlob(imageURL);
 
-
-            //create new metadata writer
-            const writer = new ID3Writer(convertedAudio);
-            writer
-                .setFrame('TIT2', trackTitle)
-                .setFrame('TALB', trackAlbum)
-                .setFrame('TPE1', [trackArtist])
-                .setFrame('TALB', trackAlbum)
-                .setFrame('TCON', [trackGenre || ""])
-                .setFrame('APIC', {
-                    type: 3,
-                    data: image,
-                    description: 'Cover',
-                });
-            writer.addTag();
-            const taggedBlob = writer.getBlob();
+            const taggedBlob = tagAudio({
+                audioBuffer: convertedAudio,
+                title: trackTitle,
+                album: trackAlbum,
+                artist: trackArtist,
+                genre: trackGenre,
+                coverImage: image
+            });
 
             // download the final tagged audio
             const blobUrl = URL.createObjectURL(taggedBlob);
@@ -417,7 +462,7 @@ const observePlaylistControls = () => {
         soundcloudTargets.forEach(target => {
             if (!target.querySelector('.all')) {
                 const btn = createDownloadAllButton(target);
-                
+
                 // Find the appropriate place to insert the button
                 if (target.classList.contains('listenDetails__content')) {
                     // For the new use case, find a good container for the button
@@ -503,8 +548,29 @@ async function scrollToPageBottom(timeout = 1000, maxAttempts = 30) {
         attempts++;
     }
 }
-
-
+//re usable function that taggs audio blob after conversion
+function tagAudio({
+    audioBuffer,
+    title,
+    album,
+    artist,
+    genre = '',
+    coverImage,
+}) {
+    const writer = new ID3Writer(audioBuffer);
+    writer
+        .setFrame('TIT2', title)
+        .setFrame('TALB', album)
+        .setFrame('TPE1', [artist])
+        .setFrame('TCON', [genre])
+        .setFrame('APIC', {
+            type: 3,
+            data: coverImage,
+            description: 'Cover',
+        });
+    writer.addTag();
+    return writer.getBlob();
+}
 
 //sleep function to delay processes
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));

@@ -1,33 +1,27 @@
 To Dos
 ---------------------------
-
-Functional
-----------
-
-- find on youtube corresponding track
-
-donwload spotify playlists, 
-work on Bandcamp
-[1]Option to download as zip ?
-
-UI
----------------
-ui for zip download?
-reset percentages to 0 when done % - ux
-
+Spotify simultaneous Downloads
+Spotify Progress tracking?
+[1]Option to download as zip ?-> JSZip 
+Spotify download button usecases ?
+donwload spotify playlists?
+work on Bandcamp?
 User ID can be revoked at any time -> scrape userID and parse it dynamically
-
-
-
-
-
-Stats backend -> keep count of users,downloads,
-can get IP address from request?
-
+----------------------------
+UI
+----------------------------
+ui for zip download? -> toggle
+reset percentages to 0 when done % - ux
 
 ---------------------------
 
 Finished ToDos:
+25th April 2025
+-
+Feature - metadata - get images from Spotify 
+Feature - metadat - get album name from Spotify
+Feature - Downlaod tracks from Spotify - UI 
+Feature API - Download endpoint - downloads and converts to 320 then sends it back to client
 
 24th April 2025
 -
@@ -43,6 +37,8 @@ Feature - metadata - handle multiple artists
 Feature - ux - open popup when downloading 
 Feature - Operational - Download buttons injected into spotify playlists
 Feature - Spotify - store track name and artists
+Feature - Create Search Query for youtube search api to fetch video id 
+youtube -> check to not be music videos audio only -> checks for the word "official" 
 
 23rd April 2025
  -

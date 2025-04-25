@@ -3,7 +3,7 @@ FROM node:18-slim
 
 # Install ffmpeg, tcpdump, ngrep
 RUN apt-get update && \
-    apt-get install -y ffmpeg tcpdump ngrep && \
+    apt-get install -y ffmpeg tcpdump ngrep yt-dlp && \
     apt-get clean
 
 # Set working directory
