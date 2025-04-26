@@ -26,6 +26,23 @@ const createBandCampDownloadButton = () => {
     return btn;
 };
 
+// creates downlaod all for spotify
+
+const createDownloadAllSpotifyButton = () => {
+    const btn = document.createElement('button');
+    btn.className = 'spotify-all-button';
+    btn.style.background = '#1DB954';
+    btn.style.marginLeft = '10px';
+    btn.style.borderRadius = '10px';
+    btn.style.color = 'white';
+    btn.style.textAlign = 'center';
+    btn.style.padding = '5px 5px ';
+    btn.innerText = 'Download';
+    btn.onclick = async () => {}
+
+}
+
+
 
 //creates a track download button on spotify
 const createSpotifyDownloadButton = () => {
@@ -45,7 +62,11 @@ const createSpotifyDownloadButton = () => {
         if (!trackElement) return;
 
         // find the div containing artist info within this specific track
-        const artistContainer = trackElement.querySelector('span.e-9812-text.encore-text-body-small.encore-internal-color-text-subdued .e-9812-text.encore-text-body-small');
+        let artistContainer = trackElement.querySelector('span.e-9812-text.encore-text-body-small.encore-internal-color-text-subdued .e-9812-text.encore-text-body-small');
+        // use case 2
+        if (!artistContainer) {
+            artistContainer = trackElement.querySelector('span.e-9812-text.encore-text-body-medium.encore-internal-color-text-subdued');
+        }
 
         if (artistContainer) {
             // get artists
@@ -59,17 +80,19 @@ const createSpotifyDownloadButton = () => {
 
             // get track title
             const titleElement = trackElement.querySelector('.e-9812-text.encore-text-body-medium.encore-internal-color-text-base');
+            //use case 2
+            if (!titleElement) {
+                titleElement = trackElement.querySelector('a[data-testid="internal-track-link"] div.e-9812-text');
+            }
             const trackTitle = titleElement ? titleElement.textContent : "Unknown Track";
             //get track image
             const imageElement = trackElement.querySelector('img.mMx2LUixlnN_Fu45JpFB');
             const smallUrl = imageElement ? imageElement.src : "";
             const imageURL = smallUrl.replace("ab67616d00004851", "ab67616d0000b273") || defaultImageURL// neat hack to get larger image 
             const image = await getImageBlob(imageURL); // convert image to array buffer
-            console.log(image)
             //get album
             const albumElement = trackElement.querySelector('div._TH6YAXEzJtzSxhkGSqu [href^="/album/"]');
             const trackAlbum = albumElement ? albumElement.textContent : "Unknown Album";
-            console.log(trackAlbum)
 
             let trackArtist = artists.join(", ")
             let output = `Song: ${trackTitle} Artists: ${trackArtist}` // use this for metafdata
@@ -140,9 +163,7 @@ const createSpotifyDownloadButton = () => {
 
             btn.innerText = 'Done';
 
-        } else {
-            console.log("Could not find artist information");
-        }
+        } 
     };
     return btn
 }
@@ -476,8 +497,13 @@ const getAudioUintArray = async (blob) => {
 const observeTrackItems = () => {
     const observer = new MutationObserver(() => { //mutation observer ensures that all elements are injected automattically
         const soundcloudTargets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem');
-        const spotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"]');
+        const allSpotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"], .oIeuP60w1eYpFaXESRSg .PAqIqZXvse_3h6sDVxU0[role="gridcell"]')
         const bandcampTargets = document.querySelectorAll('td.download-col')
+        
+        //filters out popular track parent div -> 
+        const spotifyTargets = Array.from(allSpotifyTargets).filter(el => {
+            return !el.closest('[aria-label="popular tracks"]');
+          });
 
         bandcampTargets.forEach(target => {
             if (!target.querySelector('.bandcamp-button')) {

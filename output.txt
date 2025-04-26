@@ -1,10 +1,9 @@
 To Dos
 ---------------------------
 
-
-Spotify Progress tracking? -> different way
+Download Progress 0-50%
+ -> 
 [1]Option to download as zip ?-> JSZip 
-Spotify download button usecases ? -> show correcrly in different playlist types
 donwload all button in spotify playlists?
 work on Bandcamp?
 Youtube API key has a quota -> figure out a way to refresh keys
@@ -17,9 +16,17 @@ reset percentages to 0 when done % - ux
 
 ---------------------------
 
+
+
 Finished ToDos:
+
+26th April 2025
+Feature - Spotify - correct usecases for single download
+
 25th April 2025
 -
+Feature - Bandcamp - first use case download button injected
+Feature - Spotify - Conversion tracking -50 - 100%
 Feature - Spotify - show recent download history in popup
 Feature - Spotify - simultaneous Downloads
 Feature - Spotify - metadata - get images from Spotify 
