@@ -7,6 +7,8 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const axios = require('axios');
 const youtubedl = require('youtube-dl-exec');
+const { exec } = require('child_process');
+
 
 dotenv.config();
 api = process.env.YOUTUBE_API
@@ -20,6 +22,21 @@ app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();
 });
+// dynamically gets client ID -> ensures even when revoked it works
+app.post('/get-soundcloud-clientid', async (req, res) => {
+    exec('curl -s https://a-v2.sndcdn.com/assets/0-c78a5fdb.js | grep -o "client_id=[a-zA-Z0-9]*"', (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error executing command: ${error.message}`);
+            return res.status(500).send('Error fetching SoundCloud client ID');
+        }
+        if (stderr) {
+            console.error(`stderr: ${stderr}`);
+            return res.status(500).send('Error fetching SoundCloud client ID');
+        }
+        
+        res.send(stdout.trim());
+    });
+});
 
 // search endpoint to YouTube -> now returns videoId to client
 app.post('/search', async (req, res) => {
@@ -30,7 +47,7 @@ app.post('/search', async (req, res) => {
         const response = await axios.get(url);
 
         // checks video is not a music video -> unwanted/dead audio
-        let videoId, title;
+        let videoId;
         for (const item of response.data.items) {
             if (item.id.videoId && item.snippet.title) {
                 const currentTitle = item.snippet.title;
@@ -132,6 +149,7 @@ app.post('/download', async (req, res) => {
         ],
         retries: 3,
         socketTimeout: 30
+        
       });
       //server log when download is done
       console.log(`[YOUTUBE-DL END] Successfully downloaded video ${videoId} to ${outputPath}`);

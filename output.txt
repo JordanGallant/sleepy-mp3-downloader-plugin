@@ -1,17 +1,14 @@
 To Dos
 ---------------------------
-Donwload all button in spotify playlists?
-Download Progress 0-50% for spotify
+Download Progress 0-50% for spotify * COMPLICATED * 
 Option to download as zip ?-> JSZip 
 
-Spotify donwload from recomended -> include album from link
 
 Youtube API key has a quota -> figure out a way to refresh keys
-User ID can be revoked at any time -> scrape userID and parse it dynamically
 ----------------------------
 UI
 ----------------------------
-ui for zip download? -> toggle
+ui for zip download? -> toggle / Progress bar
 reset percentages to 0 when done % - ux
 
 ---------------------------
@@ -19,10 +16,19 @@ reset percentages to 0 when done % - ux
 
 
 Finished ToDos:
+27th April 2025
+-
+Featrue - SoundCloud - Downlaod all as zip
+Featrue - SoundCloud - User ID is now scraped and can be parsed dynamically
+Featrue - Spotify download button fix
+Featrue - Spotify donwload from recomended -> include album from link
+Featrue - Spotify - downlaod from artist page - parse images and name from document
 
 26th April 2025
+-
 Feature - Spotify - correct usecases for single Download
 Feature - Spotify - Inject Download All button in playlist
+
 25th April 2025
 -
 Feature - Bandcamp - first use case download button injected
@@ -68,4 +74,4 @@ Feature - ui - Store download recent history in content.html
 
 ---------------------------
 
-
+Command to get client_ID from Soundcloud

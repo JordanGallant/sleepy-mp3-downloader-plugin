@@ -1,4 +1,6 @@
 import { ID3Writer } from 'browser-id3-writer'; // metadata writer 
+import JSZip from "jszip"; //javascript zip library
+
 
 const SOUNDCLOUD_CLIENT_ID = "client_id=EjkRJG0BLNEZquRiPZYdNtJdyGtTuHdp"; //client id needed for authorization, can be repeated, Souncloud is dumb and bad at security
 const SOUNDCLOUD_API_URL = "https://api-v2.soundcloud.com/resolve?url="; //very useful url resolver that finds any track from a given playlist url
@@ -51,6 +53,7 @@ const createDownloadAllSpotifyButton = () => {
     
 
 }
+
 
 
 
@@ -262,6 +265,8 @@ const createDownloadAllSoundCloudButton = (playlistElement) => {
             return;
         }
 
+        const zip = new JSZip();
+
         for (const track of tracks) {
             // displays count of downloads left
             btn.innerText = `(${count})`;
@@ -353,16 +358,12 @@ const createDownloadAllSoundCloudButton = (playlistElement) => {
                     genre: trackGenre,
                     coverImage: image
                 });
+                //zip file
+                zip.file(`${trackTitle}.mp3`, taggedBlob);
 
-                // download the final tagged audio
-                const blobUrl = URL.createObjectURL(taggedBlob);
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.setAttribute('download', `${trackTitle}.mp3`);
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(blobUrl);
+
+
+                
 
                 await sleep(500);
 
@@ -370,6 +371,18 @@ const createDownloadAllSoundCloudButton = (playlistElement) => {
                 console.error(`Error processing track: ${trackUrl}`, error);
             }
         }
+
+        zip.generateAsync({ type: "blob" })
+    .then(function(content) {
+        const zipUrl = URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = zipUrl;
+        a.setAttribute('download', '[SLEEPY_DOWNLOADER] -  Tracks.zip');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(zipUrl);
+    });
 
         // Reset button state after processing all tracks
         btn.innerText = 'Done';
@@ -419,6 +432,10 @@ const createSoundCloudDownloadButton = (trackElement) => {
             btn.innerText = 'Failed';
             return;
         }
+        //console logs Client ID for spotify make = CLIENT_ID
+        clientId = await getClientId()
+        console.log(clientId);
+        
 
         //url to find audio transcoded audio streams
         const endUrl = SOUNDCLOUD_API_URL + trackUrl + "&" + SOUNDCLOUD_CLIENT_ID;
@@ -533,7 +550,7 @@ const getAudioUintArray = async (blob) => {
 // dynamically injects buttons into the DOM on each soundcloud track
 const observeTrackItems = () => {
     const observer = new MutationObserver(() => { //mutation observer ensures that all elements are injected automattically
-        const soundcloudTargets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem');
+        const soundcloudTargets = document.querySelectorAll('.trackItem, .systemPlaylistBannerItem');
         const spotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"], .oIeuP60w1eYpFaXESRSg .PAqIqZXvse_3h6sDVxU0[role="gridcell"]')
         const bandcampTargets = document.querySelectorAll('td.download-col')
 
@@ -567,7 +584,7 @@ const observeTrackItems = () => {
 const observePlaylistControls = () => {
     const observer = new MutationObserver(() => {
         // Add .listenDetails__trackList to the selector list
-        const soundcloudTargets = document.querySelectorAll('.systemPlaylistDetails__controls, .listenEngagement__footer, .listenDetails__content');
+        const soundcloudTargets = document.querySelectorAll('.systemPlaylistDetails__controls, .listenEngagement__footer');
         const allSpotifyTargets = document.querySelectorAll('.eSg4ntPU2KQLfpLGXAww')
 
         //filters out popular track-page div -> SPOTIFY
@@ -647,7 +664,6 @@ const toggleButtons = (isAllDownloading) => {
     }
 };
 
-
 //soundcloud = lazy loaded -> make sure all content is loaded ->  automatically scrolls to the bottom 
 async function scrollToPageBottom(timeout = 1000, maxAttempts = 30) {
     let lastHeight = 0;
@@ -694,6 +710,17 @@ function tagAudio({
     writer.addTag();
     return writer.getBlob();
 }
+//dynamically get client ID from soundlcloud
+async function getClientId() {
+    try {
+      const response = await fetch('http://localhost:3000/get-soundcloud-clientid', { method: 'POST' });
+      const clientId = await response.text();
+      return clientId;
+      // use clientId here
+    } catch (error) {
+      console.error('Error fetching SoundCloud Client ID:', error);
+    }
+  }
 
 //sleep function to delay processes
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
