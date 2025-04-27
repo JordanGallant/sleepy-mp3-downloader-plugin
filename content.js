@@ -22,7 +22,7 @@ const createBandCampDownloadButton = () => {
     });
     btn.className = 'bandcamp-button';
     btn.textContent = 'Download';
-    btn.onclick = () => btn.textContent = '...';
+    btn.onclick = async () => { }
     return btn;
 };
 
@@ -38,8 +38,17 @@ const createDownloadAllSpotifyButton = () => {
     btn.style.textAlign = 'center';
     btn.style.padding = '5px 5px ';
     btn.innerText = 'Download All';
-    btn.onclick = async () => { }
-    return btn
+    btn.onclick = async () => {
+        btn.innerText = 'Processing...';
+
+        //find playlist element of all the trakcs 
+        const playlistElement = document.querySelector('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .JUa6JJNj7R_Y3i4P8YUX div[style="transform: translateY(0px);"]')
+        console.log(playlistElement)
+        
+   
+         }
+         return btn
+    
 
 }
 
@@ -60,7 +69,6 @@ const createSpotifyDownloadButton = () => {
         btn.innerText = 'Processing...';
         // get the parent track element for this specific button
         const trackElement = btn.closest('[data-testid="tracklist-row"]');
-        if (!trackElement) return;
 
         // find the div containing artist info within this specific track
         let artistContainer = trackElement.querySelector('span.e-9812-text.encore-text-body-small.encore-internal-color-text-subdued .e-9812-text.encore-text-body-small');
@@ -98,7 +106,6 @@ const createSpotifyDownloadButton = () => {
                 }
 
             }
-            console.log(imageElement.src)
             const smallUrl = imageElement ? imageElement.src : "";
             const imageURL = smallUrl.replace("ab67616d00004851", "ab67616d0000b273") || defaultImageURL// neat hack to get larger image 
             const image = await getImageBlob(imageURL); // convert image to array buffer
@@ -140,7 +147,7 @@ const createSpotifyDownloadButton = () => {
             // sends titles to service_worker (3)
             chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
 
-            //creates unique ID used to track progress
+            //creates unique ID used to track progress 
             const id = Date.now().toString();
             // sends id to service worker (1)
             chrome.runtime.sendMessage({ action: "setId", id: id });
@@ -530,10 +537,7 @@ const observeTrackItems = () => {
         const spotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"], .oIeuP60w1eYpFaXESRSg .PAqIqZXvse_3h6sDVxU0[role="gridcell"]')
         const bandcampTargets = document.querySelectorAll('td.download-col')
 
-        //filters out popular track parent div -> SPOTIFY
-        // const spotifyTargets = Array.from(allSpotifyTargets).filter(el => {
-        //     return !el.closest('[aria-label="popular tracks"]');
-        //   });
+     
 
         bandcampTargets.forEach(target => {
             if (!target.querySelector('.bandcamp-button')) {
@@ -564,7 +568,13 @@ const observePlaylistControls = () => {
     const observer = new MutationObserver(() => {
         // Add .listenDetails__trackList to the selector list
         const soundcloudTargets = document.querySelectorAll('.systemPlaylistDetails__controls, .listenEngagement__footer, .listenDetails__content');
-        const spotifyTargets = document.querySelectorAll('.eSg4ntPU2KQLfpLGXAww')
+        const allSpotifyTargets = document.querySelectorAll('.eSg4ntPU2KQLfpLGXAww')
+
+        //filters out popular track-page div -> SPOTIFY
+        const spotifyTargets = Array.from(allSpotifyTargets).filter(el => {
+            return !el.closest('section[data-testid="track-page"]');
+          });
+
         soundcloudTargets.forEach(target => {
             if (!target.querySelector('.soundcloud-all-button')) {
                 const btn = createDownloadAllSoundCloudButton(target);
