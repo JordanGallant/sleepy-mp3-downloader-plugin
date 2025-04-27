@@ -87,9 +87,18 @@ const createSpotifyDownloadButton = () => {
                 titleElement = trackElement.querySelector('a[data-testid="internal-track-link"] div.e-9812-text');
             }
             const trackTitle = titleElement ? titleElement.textContent : "Unknown Track";
-            console.log(trackTitle)
             //get track image
-            const imageElement = trackElement.querySelector('img.mMx2LUixlnN_Fu45JpFB');
+            let imageElement = trackElement.querySelector('img.mMx2LUixlnN_Fu45JpFB');
+
+            //use case for when on single track
+            if(!imageElement){
+                let singleImage = document.querySelector('img.mMx2LUixlnN_Fu45JpFB.CmkY1Ag0tJDfnFXbGgju._EShSNaBK1wUIaZQFJJQ.Yn2Ei5QZn19gria6LjZj')
+                if (singleImage){
+                    imageElement = singleImage
+                }
+
+            }
+            console.log(imageElement.src)
             const smallUrl = imageElement ? imageElement.src : "";
             const imageURL = smallUrl.replace("ab67616d00004851", "ab67616d0000b273") || defaultImageURL// neat hack to get larger image 
             const image = await getImageBlob(imageURL); // convert image to array buffer
