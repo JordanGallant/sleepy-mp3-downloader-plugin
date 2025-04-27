@@ -46,11 +46,11 @@ const createDownloadAllSpotifyButton = () => {
         //find playlist element of all the trakcs 
         const playlistElement = document.querySelector('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .JUa6JJNj7R_Y3i4P8YUX div[style="transform: translateY(0px);"]')
         console.log(playlistElement)
-        
-   
-         }
-         return btn
-    
+
+
+    }
+    return btn
+
 
 }
 
@@ -102,9 +102,9 @@ const createSpotifyDownloadButton = () => {
             let imageElement = trackElement.querySelector('img.mMx2LUixlnN_Fu45JpFB');
 
             //use case for when on single track
-            if(!imageElement){
+            if (!imageElement) {
                 let singleImage = document.querySelector('img.mMx2LUixlnN_Fu45JpFB.CmkY1Ag0tJDfnFXbGgju._EShSNaBK1wUIaZQFJJQ.Yn2Ei5QZn19gria6LjZj')
-                if (singleImage){
+                if (singleImage) {
                     imageElement = singleImage
                 }
 
@@ -119,17 +119,17 @@ const createSpotifyDownloadButton = () => {
             let trackArtist = artists.join(", ")
             //use case for when on artist page 
             if (!trackArtist) {
-                
-                    let span = document.querySelector('span.e-9812-text[data-encore-id="adaptiveTitle"]');
-                    if (span) {
+
+                let span = document.querySelector('span.e-9812-text[data-encore-id="adaptiveTitle"]');
+                if (span) {
                     trackArtist = span.innerText;
                 }
             }
             //use case for when on Popular tracks by
             if (!trackArtist) {
-                
-                    let h2 = document.querySelector('h2.e-9812-text[data-encore-id="text"]');
-                    if (h2) {
+
+                let h2 = document.querySelector('h2.e-9812-text[data-encore-id="text"]');
+                if (h2) {
                     trackArtist = h2.innerText;
                 }
             }
@@ -363,7 +363,7 @@ const createDownloadAllSoundCloudButton = (playlistElement) => {
 
 
 
-                
+
 
                 await sleep(500);
 
@@ -373,16 +373,16 @@ const createDownloadAllSoundCloudButton = (playlistElement) => {
         }
 
         zip.generateAsync({ type: "blob" })
-    .then(function(content) {
-        const zipUrl = URL.createObjectURL(content);
-        const a = document.createElement('a');
-        a.href = zipUrl;
-        a.setAttribute('download', '[SLEEPY_DOWNLOADER] -  Tracks.zip');
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(zipUrl);
-    });
+            .then(function (content) {
+                const zipUrl = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = zipUrl;
+                a.setAttribute('download', '[SLEEPY_DOWNLOADER] -  Tracks.zip');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(zipUrl);
+            });
 
         // Reset button state after processing all tracks
         btn.innerText = 'Done';
@@ -435,7 +435,7 @@ const createSoundCloudDownloadButton = (trackElement) => {
         //console logs Client ID for spotify make = CLIENT_ID
         clientId = await getClientId()
         console.log(clientId);
-        
+
 
         //url to find audio transcoded audio streams
         const endUrl = SOUNDCLOUD_API_URL + trackUrl + "&" + SOUNDCLOUD_CLIENT_ID;
@@ -550,11 +550,15 @@ const getAudioUintArray = async (blob) => {
 // dynamically injects buttons into the DOM on each soundcloud track
 const observeTrackItems = () => {
     const observer = new MutationObserver(() => { //mutation observer ensures that all elements are injected automattically
-        const soundcloudTargets = document.querySelectorAll('.trackItem, .systemPlaylistBannerItem');
+        const allSoundcloudTargets = document.querySelectorAll('.trackItem, .systemPlaylistBannerItem');
         const spotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"], .oIeuP60w1eYpFaXESRSg .PAqIqZXvse_3h6sDVxU0[role="gridcell"]')
         const bandcampTargets = document.querySelectorAll('td.download-col')
 
-     
+        const soundcloudTargets = Array.from(allSoundcloudTargets).filter(el => {
+            // Don't render if element is inside compactTrackList__list
+            return !el.closest('ul.compactTrackList__list');
+        });
+
 
         bandcampTargets.forEach(target => {
             if (!target.querySelector('.bandcamp-button')) {
@@ -584,13 +588,21 @@ const observeTrackItems = () => {
 const observePlaylistControls = () => {
     const observer = new MutationObserver(() => {
         // Add .listenDetails__trackList to the selector list
-        const soundcloudTargets = document.querySelectorAll('.systemPlaylistDetails__controls, .listenEngagement__footer');
+        const allSoundcloudTargets = document.querySelectorAll('.systemPlaylistDetails__controls, .listenEngagement__footer');
         const allSpotifyTargets = document.querySelectorAll('.eSg4ntPU2KQLfpLGXAww')
+
+        const commentsListExists = document.querySelector('.commentsList') !== null;
+
+        // Filter out buttons if comments list exists
+        const soundcloudTargets = Array.from(allSoundcloudTargets).filter(el => {
+            // Don't render the button if comments list exists OR if element is inside track page
+            return !commentsListExists && !el.closest('section[data-testid="track-page"]');
+        });
 
         //filters out popular track-page div -> SPOTIFY
         const spotifyTargets = Array.from(allSpotifyTargets).filter(el => {
             return !el.closest('section[data-testid="track-page"]');
-          });
+        });
 
         soundcloudTargets.forEach(target => {
             if (!target.querySelector('.soundcloud-all-button')) {
@@ -713,14 +725,14 @@ function tagAudio({
 //dynamically get client ID from soundlcloud
 async function getClientId() {
     try {
-      const response = await fetch('http://localhost:3000/get-soundcloud-clientid', { method: 'POST' });
-      const clientId = await response.text();
-      return clientId;
-      // use clientId here
+        const response = await fetch('http://localhost:3000/get-soundcloud-clientid', { method: 'POST' });
+        const clientId = await response.text();
+        return clientId;
+        // use clientId here
     } catch (error) {
-      console.error('Error fetching SoundCloud Client ID:', error);
+        console.error('Error fetching SoundCloud Client ID:', error);
     }
-  }
+}
 
 //sleep function to delay processes
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
