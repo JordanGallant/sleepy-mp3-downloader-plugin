@@ -51,7 +51,7 @@ app.post('/search', async (req, res) => {
         for (const item of response.data.items) {
             if (item.id.videoId && item.snippet.title) {
                 const currentTitle = item.snippet.title;
-                if (!currentTitle.toLowerCase().includes('official') && !currentTitle.toLowerCase().includes('show') && !currentTitle.toLowerCase().includes('stage')&& !currentTitle.toLowerCase().includes('remix')) {
+                if (!currentTitle.toLowerCase().includes('video') && !currentTitle.toLowerCase().includes('show') && !currentTitle.toLowerCase().includes('stage')&& !currentTitle.toLowerCase().includes('remix')) {
                     videoId = item.id.videoId;
                     console.log("vidoe", videoId)
                     break;

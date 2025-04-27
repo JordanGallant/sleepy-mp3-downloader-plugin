@@ -38,24 +38,160 @@ const createDownloadAllSpotifyButton = () => {
     btn.style.borderRadius = '10px';
     btn.style.color = 'white';
     btn.style.textAlign = 'center';
-    btn.style.padding = '5px 5px ';
+    btn.style.padding = '5px 5px';
     btn.innerText = 'Download All';
     btn.onclick = async () => {
         btn.innerText = 'Processing...';
 
-        //find playlist element of all the trakcs 
-        const playlistElement = document.querySelector('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .JUa6JJNj7R_Y3i4P8YUX div[style="transform: translateY(0px);"]')
-        console.log(playlistElement)
+        // Find track rows of all the tracks 
+        const trackRows = document.querySelectorAll('[data-testid="tracklist-row"]');
 
+        let count = trackRows.length;
+        console.log(`Found ${count} tracks to download`);
 
-    }
-    return btn
+        if (count === 0) {
+            btn.innerText = 'No tracks found';
+            setTimeout(() => {
+                btn.innerText = 'All';
+                toggleButtons(false);
+            }, 2000);
+            return;
+        }
+        
+        // Initialize JSZIP
+        const zip = new JSZip();
+        
+        // Use for...of instead of forEach to properly handle async operations
+        for (const row of trackRows) {
+            btn.innerText = `(${count})`;
+            count -= 1;
+            
+            // Find the title element
+            const titleElement = row.querySelector('[data-testid="internal-track-link"] div');
+            let artistElements = row.querySelectorAll('.UudGCx16EmBkuFPllvss a');
+            let imageElement = row.querySelector('img.mMx2LUixlnN_Fu45JpFB');
+            let smallUrl;
+            let albumElement = row.querySelector('a.standalone-ellipsis-one-line');
 
+            // Checks if image is in the track row otherwise gets image from page
+            if (!imageElement) {
+                imageElement = document.querySelector('img.mMx2LUixlnN_Fu45JpFB.CmkY1Ag0tJDfnFXbGgju._EShSNaBK1wUIaZQFJJQ');
+                smallUrl = imageElement ? imageElement.src : defaultImageURL;
+            } else {
+                smallUrl = imageElement.src;
+            }
 
-}
+            // Checks if album name is in the track row otherwise gets it from document
+            if (!albumElement) {
+                albumElement = document.querySelector('h1.e-9812-text.encore-text-headline-large.encore-internal-color-text-base');
+            }
 
+            const artists = [];
 
+            artistElements.forEach(link => {
+                artists.push(link.textContent);
+            });
 
+            let trackArtist = artists.join(", ");
+
+            try {
+                // Get metadata 
+                const trackTitle = titleElement ? titleElement.textContent : 'No title found';
+                const artistName = trackArtist || 'No artist found';
+                const imageUrl = smallUrl.replace("ab67616d00004851", "ab67616d0000b273") || defaultImageURL;
+                const albumTitle = albumElement ? albumElement.textContent : "No Album found";
+                const trackGenre = "";
+                const image = await getImageBlob(imageUrl);
+
+                let output = `Song: ${trackTitle} Artists: ${artistName}`; // use this for metadata
+                let urlEncodedQuery = encodeURIComponent(output); // url encode payload
+
+                // Service worker logic
+                const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
+
+                // Append track title if not already -> checks if not there (2)
+                if (!existingTitles.includes(trackTitle)) {
+                    existingTitles.push(trackTitle);
+                    localStorage.setItem('trackTitles', JSON.stringify(existingTitles));
+                }
+
+                // Sends titles to service_worker (3)
+                chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
+
+                // Creates unique ID used to track progress 
+                const id = Date.now().toString();
+                // Sends id to service worker (1)
+                chrome.runtime.sendMessage({ action: "setId", id: id });
+
+                const getID = await fetch('https://audio-api-6r6z.onrender.com/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: urlEncodedQuery,
+                });
+
+                // Get videoID
+                const data = await getID.json();
+                console.log(data);
+
+                // Send to api to download
+                const videoId = data.videoId;
+                const postResponse = await fetch(`https://audio-api-6r6z.onrender.com/download?id=${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: videoId })
+                });
+                
+                const convertedBlob = await postResponse.blob();
+                const convertedAudio = await getAudioUintArray(convertedBlob);
+                const taggedBlob = tagAudio({
+                    audioBuffer: convertedAudio,
+                    title: trackTitle,
+                    album: albumTitle,
+                    artist: artistName,
+                    genre: trackGenre,
+                    coverImage: image
+                });
+                
+                zip.file(`${trackTitle}.mp3`, taggedBlob);
+                await sleep(500);
+            } catch (error) {
+                console.error(`Error processing track:`, error);
+            }
+        }
+
+        // Now that all downloads are complete, generate the zip file
+        try {
+            const content = await zip.generateAsync({ type: "blob" });
+            const zipUrl = URL.createObjectURL(content);
+            const a = document.createElement('a');
+            a.href = zipUrl;
+            a.setAttribute('download', '[SLEEPY_DOWNLOADER] -  Tracks.zip');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(zipUrl);
+            
+            // Reset button state after processing all tracks
+            btn.innerText = 'Done';
+            setTimeout(() => {
+                btn.innerText = 'Download All';
+                toggleButtons(false);
+            }, 2000);
+        } catch (error) {
+            console.error("Error generating zip:", error);
+            btn.innerText = 'Error';
+            setTimeout(() => {
+                btn.innerText = 'Download All';
+            }, 2000);
+        }
+    };
+    
+    return btn;
+};
 
 //creates a track download button on spotify
 const createSpotifyDownloadButton = () => {
@@ -87,7 +223,6 @@ const createSpotifyDownloadButton = () => {
 
             artistLinks.forEach(link => {
                 artists.push(link.textContent);
-                console.log
             });
 
 
@@ -222,7 +357,6 @@ const createDownloadAllSoundCloudButton = (playlistElement) => {
 
     btn.onclick = async () => {
         await scrollToPageBottom();
-        toggleButtons(true);
 
         let tracks = [];
 
