@@ -21,7 +21,7 @@ const createBandCampDownloadButton = () => {
         border: 'none'
     });
     btn.className = 'bandcamp-button';
-    btn.textContent = 'download';
+    btn.textContent = 'Download';
     btn.onclick = () => btn.textContent = '...';
     return btn;
 };
@@ -37,8 +37,9 @@ const createDownloadAllSpotifyButton = () => {
     btn.style.color = 'white';
     btn.style.textAlign = 'center';
     btn.style.padding = '5px 5px ';
-    btn.innerText = 'Download';
-    btn.onclick = async () => {}
+    btn.innerText = 'Download All';
+    btn.onclick = async () => { }
+    return btn
 
 }
 
@@ -75,6 +76,7 @@ const createSpotifyDownloadButton = () => {
 
             artistLinks.forEach(link => {
                 artists.push(link.textContent);
+                console.log
             });
 
 
@@ -85,6 +87,7 @@ const createSpotifyDownloadButton = () => {
                 titleElement = trackElement.querySelector('a[data-testid="internal-track-link"] div.e-9812-text');
             }
             const trackTitle = titleElement ? titleElement.textContent : "Unknown Track";
+            console.log(trackTitle)
             //get track image
             const imageElement = trackElement.querySelector('img.mMx2LUixlnN_Fu45JpFB');
             const smallUrl = imageElement ? imageElement.src : "";
@@ -95,25 +98,43 @@ const createSpotifyDownloadButton = () => {
             const trackAlbum = albumElement ? albumElement.textContent : "Unknown Album";
 
             let trackArtist = artists.join(", ")
+            //use case for when on artist page 
+            if (!trackArtist) {
+                
+                    let span = document.querySelector('span.e-9812-text[data-encore-id="adaptiveTitle"]');
+                    if (span) {
+                    trackArtist = span.innerText;
+                }
+            }
+            //use case for when on Popular tracks by
+            if (!trackArtist) {
+                
+                    let h2 = document.querySelector('h2.e-9812-text[data-encore-id="text"]');
+                    if (h2) {
+                    trackArtist = h2.innerText;
+                }
+            }
+            console.log(trackArtist)
+
             let output = `Song: ${trackTitle} Artists: ${trackArtist}` // use this for metafdata
             let urlEncodedQuery = encodeURIComponent(output) // url encode payload
 
             //service worker logic
             const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
 
-                // append track title if not already-> checks if not there (2)
-                if (!existingTitles.includes(trackTitle)) {
-                    existingTitles.push(trackTitle);
-                    localStorage.setItem('trackTitles', JSON.stringify(existingTitles));
-                }
+            // append track title if not already-> checks if not there (2)
+            if (!existingTitles.includes(trackTitle)) {
+                existingTitles.push(trackTitle);
+                localStorage.setItem('trackTitles', JSON.stringify(existingTitles));
+            }
 
-                // sends titles to service_worker (3)
-                chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
+            // sends titles to service_worker (3)
+            chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
 
-                //creates unique ID used to track progress
-                const id = Date.now().toString();
-                // sends id to service worker (1)
-                chrome.runtime.sendMessage({ action: "setId", id: id });
+            //creates unique ID used to track progress
+            const id = Date.now().toString();
+            // sends id to service worker (1)
+            chrome.runtime.sendMessage({ action: "setId", id: id });
 
 
             //Track Genre ? not include in spotify downloads
@@ -127,7 +148,7 @@ const createSpotifyDownloadButton = () => {
                 },
                 body: urlEncodedQuery,
             });
-            //gets videoID from API
+            //get videoID
             const data = await getID.json();
             console.log(data)
 
@@ -140,7 +161,7 @@ const createSpotifyDownloadButton = () => {
                 },
                 body: JSON.stringify({ id: videoId })
             })
-            const convertedBlob =  await postResponse.blob()
+            const convertedBlob = await postResponse.blob()
             const convertedAudio = await getAudioUintArray(convertedBlob);
             const taggedBlob = tagAudio({
                 audioBuffer: convertedAudio,
@@ -151,7 +172,7 @@ const createSpotifyDownloadButton = () => {
                 coverImage: image
             });
 
-              
+
             const blobUrl = URL.createObjectURL(taggedBlob);
             const a = document.createElement('a');
             a.href = blobUrl;
@@ -163,16 +184,16 @@ const createSpotifyDownloadButton = () => {
 
             btn.innerText = 'Done';
 
-        } 
+        }
     };
     return btn
 }
 
 //create a downlaod all button for SOUNDCLOUD playlits
-const createDownloadAllButton = (playlistElement) => {
+const createDownloadAllSoundCloudButton = (playlistElement) => {
     const btn = document.createElement('button');
-    btn.innerText = 'All';
-    btn.className = 'all';
+    btn.innerText = 'Download All';
+    btn.className = 'soundcloud-all-button';
     btn.style.marginLeft = '10px';
     btn.style.background = '#FF5500';
     btn.style.borderRadius = '10px';
@@ -497,13 +518,13 @@ const getAudioUintArray = async (blob) => {
 const observeTrackItems = () => {
     const observer = new MutationObserver(() => { //mutation observer ensures that all elements are injected automattically
         const soundcloudTargets = document.querySelectorAll('.trackItem, .sound__soundActions, .systemPlaylistBannerItem');
-        const allSpotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"], .oIeuP60w1eYpFaXESRSg .PAqIqZXvse_3h6sDVxU0[role="gridcell"]')
+        const spotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"], .oIeuP60w1eYpFaXESRSg .PAqIqZXvse_3h6sDVxU0[role="gridcell"]')
         const bandcampTargets = document.querySelectorAll('td.download-col')
-        
-        //filters out popular track parent div -> 
-        const spotifyTargets = Array.from(allSpotifyTargets).filter(el => {
-            return !el.closest('[aria-label="popular tracks"]');
-          });
+
+        //filters out popular track parent div -> SPOTIFY
+        // const spotifyTargets = Array.from(allSpotifyTargets).filter(el => {
+        //     return !el.closest('[aria-label="popular tracks"]');
+        //   });
 
         bandcampTargets.forEach(target => {
             if (!target.querySelector('.bandcamp-button')) {
@@ -534,18 +555,26 @@ const observePlaylistControls = () => {
     const observer = new MutationObserver(() => {
         // Add .listenDetails__trackList to the selector list
         const soundcloudTargets = document.querySelectorAll('.systemPlaylistDetails__controls, .listenEngagement__footer, .listenDetails__content');
+        const spotifyTargets = document.querySelectorAll('.eSg4ntPU2KQLfpLGXAww')
         soundcloudTargets.forEach(target => {
-            if (!target.querySelector('.all')) {
-                const btn = createDownloadAllButton(target);
+            if (!target.querySelector('.soundcloud-all-button')) {
+                const btn = createDownloadAllSoundCloudButton(target);
 
-                // Find the appropriate place to insert the button
+                //handles personal playlists on soundlcoud
                 if (target.classList.contains('listenDetails__content')) {
-                    // For the new use case, find a good container for the button
+                    // for the new use case, find a good container for the button
                     const controlContainer = target.querySelector('.listenDetails__tracklistControls') || target;
                     controlContainer.appendChild(btn);
                 } else {
                     target.appendChild(btn);
                 }
+            }
+        });
+
+        spotifyTargets.forEach(target => {
+            if (!target.querySelector('.spotify-all-button')) {
+                const btn = createDownloadAllSpotifyButton();
+                target.appendChild(btn);
             }
         });
     });

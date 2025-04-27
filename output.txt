@@ -1,11 +1,11 @@
 To Dos
 ---------------------------
+Donwload all button in spotify playlists?
+Download Progress 0-50% for spotify
+Option to download as zip ?-> JSZip 
 
-Download Progress 0-50%
- -> 
-[1]Option to download as zip ?-> JSZip 
-donwload all button in spotify playlists?
-work on Bandcamp?
+Spotify donwload from recomended -> include album from link
+
 Youtube API key has a quota -> figure out a way to refresh keys
 User ID can be revoked at any time -> scrape userID and parse it dynamically
 ----------------------------
@@ -21,8 +21,8 @@ reset percentages to 0 when done % - ux
 Finished ToDos:
 
 26th April 2025
-Feature - Spotify - correct usecases for single download
-
+Feature - Spotify - correct usecases for single Download
+Feature - Spotify - Inject Download All button in playlist
 25th April 2025
 -
 Feature - Bandcamp - first use case download button injected
@@ -67,11 +67,5 @@ Feature - ui - Store download recent history in content.html
 
 
 ---------------------------
-curl -X PUT "https://api.spotify.com/v1/me/player/play" \
-  -H "Authorization: Bearer BQBZMkEgkuzuNTdL0YIRXbNJh1ZmYaHBg9xJVkQioxmEkJmzIWFToXedZCDgCmmyG_mTJXK5K-5rCYi4MFxDf2c1B7-cXqWjf_sdHf07n7TwOULD0YWZAd0sgYX3LCI3B6wGKYGrpg782lcDYXfRjAHwgIkb4ksPcnQqaicohSYEy-7X9bazYkUNJ1Tnhk5_2pGPSyzQUJqMM1b6plWHZI24ZCfJs41ytzbVR0nzBgv2AkP2bxNyEgdsV3_TbpS8NsYMIuXcQmN9wyTFaqBzYdTswML7l7JNeUvic6BF43hHUiJJVc3NOeC7GHxl-lwDZd5f7EJ1DbviOSGjIrfOsjrfZn_00U9Rkx9iEjx67Uc2ekWhBY8kc-R_umMasJMNfQ" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uris": ["spotify:track:2D1NIdjLt5nsi8PJBbDPFI"]
-  }'
 
 
