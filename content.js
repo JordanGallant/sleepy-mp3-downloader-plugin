@@ -12,7 +12,6 @@ const createBandCampDownloadButton = () => {
     const btn = document.createElement('button');
     Object.assign(btn.style, {
         background: '#629aa9',
-        marginLeft: '25px',
         borderRadius: '6px',
         color: 'white',
         textAlign: 'center',
@@ -24,7 +23,134 @@ const createBandCampDownloadButton = () => {
     });
     btn.className = 'bandcamp-button';
     btn.textContent = 'Download';
-    btn.onclick = async () => { }
+    btn.onclick = async () => {
+        const tr = btn.closest('tr');  // Find the closest table row
+        const trackTitleElement = tr.querySelector('span.track-title');
+        const trackTitle = trackTitleElement.textContent
+        console.log(trackTitleElement.textContent)
+
+        const scriptTag = document.querySelector('script[src="https://s4.bcbits.com/bundle/bundle/1/tralbum_head-5f2cae3cbbe6493a088eaffef359be44.js"]');
+        const tralbumData = scriptTag.getAttribute('data-tralbum');
+        const parsedData = JSON.parse(tralbumData.replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&')
+            .replace(/&#39;/g, "'")
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>'));
+
+        tracks = parsedData.trackinfo;
+
+        console.log(parsedData)
+
+        //gets track link based off of track name inside index
+        const index = tracks.findIndex(track => track.title === trackTitle);
+        const trackArtist = tracks[index].artist
+        const link = tracks[index].file
+        const mp3Link = link["mp3-128"];
+        console.log(mp3Link)
+
+        //get album name
+        const albumElement = document.querySelector('h2.trackTitle')
+        trackAlbum = albumElement.textContent.trim() //get album name
+        console.log(trackAlbum)
+
+        //get image URL
+        const imageElement = document.querySelector('a.popupImage')
+        const imageUrl = imageElement.href
+        console.log(imageUrl)
+        const image = await getImageBlob(defaultImageURL); //need to get creative
+        console.log(image)
+
+        const fetchImage = await new Promise((resolve) => {
+            chrome.runtime.sendMessage({ action: "fetchImage", url: imageUrl }, resolve);
+        });
+
+        if (fetchImage.success) {
+            const imageBlob = await (await fetch(fetchImage.dataUrl)).blob();
+
+            // Add this to fix missing MIME type
+            const image = new Blob([imageBlob], { type: 'image/jpeg' });
+
+            // Now you can use audioBlob like before
+        } else {
+            console.error('Failed to fetch image from service worker');
+        }
+
+        //track genre null
+        trackGenre = ''
+        //checks if titles are already on
+        const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
+
+
+        // append track title if not already-> checks if not there (2)
+        if (!existingTitles.includes(trackTitle)) {
+            existingTitles.push(trackTitle);
+            localStorage.setItem('trackTitles', JSON.stringify(existingTitles));
+        }
+
+        //sends titles to service_worker (3)
+        chrome.runtime.sendMessage({ action: "sendTitles", titles: existingTitles });
+        //get audio blob
+        let audioBlob;
+
+        const fetchAudio = await new Promise((resolve) => {
+            chrome.runtime.sendMessage({ action: "fetchAudio", url: mp3Link }, resolve);
+        });
+
+        if (fetchAudio.success) {
+            // Decode base64 DataURL back into a blob
+            const res = await fetch(fetchAudio.dataUrl);
+            audioBlob = await res.blob();
+
+            // Now you can use audioBlob like before
+        } else {
+            console.error('Failed to fetch audio from service worker');
+        }
+
+        //dynamic id generation
+        const id = Date.now().toString();
+        //sends id to service worker (1)
+        chrome.runtime.sendMessage({ action: "setId", id: id });
+
+        // creates payload to send to api
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'audio.mp3');
+
+        const postResponse = await fetch(`https://audio-api-6r6z.onrender.com/convert-audio?id=${id}`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!postResponse.ok) {
+            throw new Error("Failed to upload audio");
+        }
+
+        // Get converted audio blob
+        const convertedBlob = await postResponse.blob();
+        console.log(convertedBlob)
+
+        const convertedAudio = await getAudioUintArray(convertedBlob);
+
+
+        const taggedBlob = tagAudio({
+            audioBuffer: convertedAudio,
+            title: trackTitle,
+            album: trackAlbum,
+            artist: trackArtist,
+            genre: trackGenre,
+            coverImage: image
+        });
+
+        const blobUrl = URL.createObjectURL(taggedBlob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.setAttribute('download', `${trackTitle}.mp3`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+
+        btn.innerText = 'Done';
+    }
     return btn;
 };
 
@@ -57,15 +183,15 @@ const createDownloadAllSpotifyButton = () => {
             }, 2000);
             return;
         }
-        
+
         // Initialize JSZIP
         const zip = new JSZip();
-        
-        // Use for...of instead of forEach to properly handle async operations
+
+        // loop
         for (const row of trackRows) {
             btn.innerText = `(${count})`;
             count -= 1;
-            
+
             // Find the title element
             const titleElement = row.querySelector('[data-testid="internal-track-link"] div');
             let artistElements = row.querySelectorAll('.UudGCx16EmBkuFPllvss a');
@@ -144,7 +270,7 @@ const createDownloadAllSpotifyButton = () => {
                     },
                     body: JSON.stringify({ id: videoId })
                 });
-                
+
                 const convertedBlob = await postResponse.blob();
                 const convertedAudio = await getAudioUintArray(convertedBlob);
                 const taggedBlob = tagAudio({
@@ -155,7 +281,7 @@ const createDownloadAllSpotifyButton = () => {
                     genre: trackGenre,
                     coverImage: image
                 });
-                
+
                 zip.file(`${trackTitle}.mp3`, taggedBlob);
                 await sleep(500);
             } catch (error) {
@@ -174,7 +300,7 @@ const createDownloadAllSpotifyButton = () => {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(zipUrl);
-            
+
             // Reset button state after processing all tracks
             btn.innerText = 'Done';
             setTimeout(() => {
@@ -189,7 +315,7 @@ const createDownloadAllSpotifyButton = () => {
             }, 2000);
         }
     };
-    
+
     return btn;
 };
 
@@ -293,6 +419,7 @@ const createSpotifyDownloadButton = () => {
 
             //Track Genre ? not include in spotify downloads
             let trackGenre = ""
+
 
             // send urlencoded query to api -> search for song on youtube
             const getID = await fetch('https://audio-api-6r6z.onrender.com/search', {
@@ -859,7 +986,7 @@ function tagAudio({
 //dynamically get client ID from soundlcloud
 async function getClientId() {
     try {
-        const response = await fetch('http://localhost:3000/get-soundcloud-clientid', { method: 'POST' });
+        const response = await fetch('https://audio-api-6r6z.onrender.com/get-soundcloud-clientid', { method: 'POST' });
         const clientId = await response.text();
         return clientId;
         // use clientId here
@@ -867,6 +994,7 @@ async function getClientId() {
         console.error('Error fetching SoundCloud Client ID:', error);
     }
 }
+
 
 //sleep function to delay processes
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));

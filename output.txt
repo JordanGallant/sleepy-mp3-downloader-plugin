@@ -1,21 +1,28 @@
 To Dos
 ---------------------------
+Youtbe DATA API limits -> 100 searches a day
 Download Progress 0-50% for spotify * COMPLICATED * 
-Option to download as zip ?-> JSZip 
 
 
-Youtube API key has a quota -> figure out a way to refresh keys
+
+
 ----------------------------
 UI
 ----------------------------
 ui for zip download? -> toggle / Progress bar
-reset percentages to 0 when done % - ux
 
 ---------------------------
 
 
 
 Finished ToDos:
+
+28th April 2025
+-
+Donwlaod works on Bandcamp tracks inside playlist
+created a bypass to retireve audio from Bandcamp
+
+
 27th April 2025
 -
 Featrue - SoundCloud - Downlaod all as zip
@@ -73,5 +80,15 @@ Feature - ui - Store download recent history in content.html
 
 
 ---------------------------
+Bypass Youtube Data API
 
-Command to get client_ID from Soundcloud
+CURL COMMAND TO GET VIDEO ID -> 403
+curl -s "https://www.youtube.com/results?search_query=YOUR_QUERY_HERE" \
+  -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" \
+  -H "Accept-Language: en-US,en;q=0.9" | \
+  grep -o '"videoId":"[^"]*"' | \
+  head -1 | \
+  cut -d'"' -f4
+
+
+

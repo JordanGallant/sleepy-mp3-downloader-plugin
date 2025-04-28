@@ -6,13 +6,16 @@
     "activeTab",
     "scripting",
     "downloads",
-    "storage"
+    "storage",
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": [
     "https://soundcloud.com/*",
     "https://audio-api-6r6z.onrender.com/*",
     "https://open.spotify.com/*",
-    "https://*.bandcamp.com/*"
+    "https://*.bandcamp.com/*",
+    "https://t4.bcbits.com/*"
   ],
   "background": {
     "service_worker": "service_worker.js"
@@ -35,5 +38,14 @@
     "default_icon": {
       "16": "icon.png"
     }
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "cors-rules",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
   }
 }
