@@ -1,4 +1,4 @@
-# Sleepy Downloader to MP3
+# Sleepy MP3 downloader
 
 ## How it works
 
