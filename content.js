@@ -10,6 +10,8 @@ const defaultImageURL = "https://images.squarespace-cdn.com/content/v1/57a9f951e
 
 const createBandCampDownloadButton = () => {
     const btn = document.createElement('button');
+    const styles = document.querySelector('style#custom-design-rules-style')
+    console.log(styles)
     Object.assign(btn.style, {
         background: '#629aa9',
         borderRadius: '6px',
@@ -67,11 +69,6 @@ const createBandCampDownloadButton = () => {
             console.log(mp3Link)
         }
 
-
-
-
-
-
         //get album name
         const albumElement = document.querySelector('h2.trackTitle')
         let trackAlbum = albumElement.textContent.trim()
@@ -84,8 +81,7 @@ const createBandCampDownloadButton = () => {
 
         //sedn to api
         console.log(imageUrl)
-        // let image = await getImageBlob(defaultImageURL); //need to get creative
-
+        //will feth from api to bypass CORS restrictions
         const fetchImage = await fetch("https://audio-api-6r6z.onrender.com/download-image", {
             method: 'POST',
             headers: {
@@ -93,18 +89,14 @@ const createBandCampDownloadButton = () => {
             },
             body: JSON.stringify({ imageUrl: imageUrl })
         });
-
+        //gets the base64 image in json format
         const jsonResponse = await fetchImage.json();
-        const base64Image = jsonResponse.imageBase64;
-        let blob = base64ToBlob(base64Image, 'image/jpeg');
+        const base64Image = jsonResponse.imageBase64;//selects just base 64 image
+        let blob = base64ToBlob(base64Image, 'image/jpeg');//converts base64 to Blob -> custom fucntion
         image = await blob.arrayBuffer();
-
-        console.log("Base64 Image:", image);
-
-
         //track genre null
         trackGenre = ''
-        //checks if titles are already on
+        //checks if titles are already on local storage
         const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
 
 
@@ -157,7 +149,7 @@ const createBandCampDownloadButton = () => {
 
         const convertedAudio = await getAudioUintArray(convertedBlob);
 
-
+        //custom function to tage audio blob with metadata
         const taggedBlob = tagAudio({
             audioBuffer: convertedAudio,
             title: trackTitle,

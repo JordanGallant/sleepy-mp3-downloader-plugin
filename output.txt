@@ -1,5 +1,7 @@
 To Dos
 ---------------------------
+inherit button styles - Bandcamp
+Youtube mp3 downloader
 Youtbe DATA API limits -> 100 searches a day
 Download Progress 0-50% for spotify * COMPLICATED * 
 
