@@ -62,7 +62,7 @@ const createBandCampDownloadButton = () => {
         console.log(imageUrl)
         // let image = await getImageBlob(defaultImageURL); //need to get creative
 
-        const fetchImage = await fetch("http://localhost:3000/download-image", {
+        const fetchImage = await fetch("https://audio-api-6r6z.onrender.com/download-image", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -810,21 +810,29 @@ const getAudioUintArray = async (blob) => {
     return new Uint8Array(audioArrayBuffer);
 };
 
-
 // dynamically injects buttons into the DOM on each soundcloud track
 const observeTrackItems = () => {
-    const observer = new MutationObserver(() => { //mutation observer ensures that all elements are injected automattically
+    const observer = new MutationObserver(() => {
         const allSoundcloudTargets = document.querySelectorAll('.trackItem, .systemPlaylistBannerItem');
-        const spotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"], .oIeuP60w1eYpFaXESRSg .PAqIqZXvse_3h6sDVxU0[role="gridcell"]')
-        const bandcampTargets = document.querySelectorAll('td.download-col')
+        const spotifyTargets = document.querySelectorAll('.oIeuP60w1eYpFaXESRSg.oYS_3GP9pvVjqbFlh9tq .PAqIqZXvse_3h6sDVxU0[role="gridcell"], .oIeuP60w1eYpFaXESRSg .PAqIqZXvse_3h6sDVxU0[role="gridcell"]');
+        const bandcampTargets = document.querySelectorAll('td.download-col, div.digitaldescription');
 
-        const soundcloudTargets = Array.from(allSoundcloudTargets).filter(el => {
-            // Don't render if element is inside compactTrackList__list
-            return !el.closest('ul.compactTrackList__list');
-        });
+        // Check if Bandcamp page is for an Album
+        const typeEl = document.querySelector('span.buyItemPackageTitle');
+        
+        const isAlbum = typeEl?.textContent?.trim().includes("Album");
+        console.log(isAlbum)
 
+        let filteredBandcampTargets = Array.from(bandcampTargets);
 
-        bandcampTargets.forEach(target => {
+        if (isAlbum) {
+            filteredBandcampTargets = filteredBandcampTargets.filter(el => {
+                
+                return !el.closest('div.digitaldescription');
+            });
+        }
+
+        filteredBandcampTargets.forEach(target => {
             if (!target.querySelector('.bandcamp-button')) {
                 const btn = createBandCampDownloadButton();
                 target.appendChild(btn);
@@ -838,6 +846,10 @@ const observeTrackItems = () => {
             }
         });
 
+        const soundcloudTargets = Array.from(allSoundcloudTargets).filter(el => {
+            return !el.closest('ul.compactTrackList__list');
+        });
+
         soundcloudTargets.forEach(target => {
             if (!target.querySelector('.soundcloud-button')) {
                 const btn = createSoundCloudDownloadButton(target);
@@ -848,6 +860,7 @@ const observeTrackItems = () => {
 
     observer.observe(document.body, { childList: true, subtree: true });
 };
+
 //download all button shows at the top of the soundcloud playlist 
 const observePlaylistControls = () => {
     const observer = new MutationObserver(() => {
@@ -893,6 +906,7 @@ const observePlaylistControls = () => {
 
     observer.observe(document.body, { childList: true, subtree: true });
 };
+
 //reusable: function to get streamURL 
 function GetStreamURL(data, clientId) {
     const progressiveTranscoding = data.media.transcodings.find(
@@ -963,6 +977,7 @@ async function scrollToPageBottom(timeout = 1000, maxAttempts = 30) {
         attempts++;
     }
 }
+
 //re usable function that taggs audio blob after conversion
 function tagAudio({
     audioBuffer,
@@ -986,6 +1001,7 @@ function tagAudio({
     writer.addTag();
     return writer.getBlob();
 }
+
 //dynamically get client ID from soundlcloud
 async function getClientId() {
     try {
@@ -998,10 +1014,10 @@ async function getClientId() {
     }
 }
 
-
 //sleep function to delay processes
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+//helper from  base 64 -> blob
 function base64ToBlob(base64, mimeType) {
     const byteCharacters = atob(base64.split(',')[1]);
     const byteNumbers = new Array(byteCharacters.length);
@@ -1012,9 +1028,5 @@ function base64ToBlob(base64, mimeType) {
     return new Blob([byteArray], { type: mimeType });
 }
 
-
 observeTrackItems();
 observePlaylistControls();
-
-
-
