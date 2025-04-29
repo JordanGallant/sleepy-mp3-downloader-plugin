@@ -1,4 +1,4 @@
-# SoundCloud Downloader to MP3
+# Sleepy Downloader to MP3
 
 ## How it works
 
