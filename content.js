@@ -24,10 +24,18 @@ const createBandCampDownloadButton = () => {
     btn.className = 'bandcamp-button';
     btn.textContent = 'Download';
     btn.onclick = async () => {
-        const tr = btn.closest('tr');  // Find the closest table row
-        const trackTitleElement = tr.querySelector('span.track-title');
-        const trackTitle = trackTitleElement.textContent
-        console.log(trackTitleElement.textContent)
+        const tr = btn.closest('tr'); // Find the closest table row
+        let trackTitle;
+        if (!tr) {
+            trackTitle = (document.querySelector('h2.trackTitle')).textContent.trim()
+            console.log(trackTitle)
+        } else {
+            let trackTitleElement = tr.querySelector('span.track-title');
+            trackTitle = trackTitleElement.textContent
+
+            console.log(trackTitle)
+        }
+
 
         const scriptTag = document.querySelector('script[src="https://s4.bcbits.com/bundle/bundle/1/tralbum_head-5f2cae3cbbe6493a088eaffef359be44.js"]');
         const tralbumData = scriptTag.getAttribute('data-tralbum');
@@ -38,19 +46,35 @@ const createBandCampDownloadButton = () => {
             .replace(/&gt;/g, '>'));
 
         tracks = parsedData.trackinfo;
-
         console.log(parsedData)
+        let trackArtist;
+        let mp3Link;
+        //sees if it is a single track
+        if (tracks.length < 2) {
+            console.log(tracks[0])
+            trackArtist = tracks[0].artist
+            console.log(trackArtist)
+            const link = tracks[0].file
+            mp3Link = link["mp3-128"];
+            console.log(mp3Link)
+        } else {
+            //gets track link based off of track name inside index
+            const index = tracks.findIndex(track => track.title === trackTitle);
+            trackArtist = tracks[index].artist
+            console.log(trackArtist)
+            const link = tracks[index].file
+            mp3Link = link["mp3-128"];
+            console.log(mp3Link)
+        }
 
-        //gets track link based off of track name inside index
-        const index = tracks.findIndex(track => track.title === trackTitle);
-        const trackArtist = tracks[index].artist
-        const link = tracks[index].file
-        const mp3Link = link["mp3-128"];
-        console.log(mp3Link)
+
+
+
+
 
         //get album name
         const albumElement = document.querySelector('h2.trackTitle')
-        trackAlbum = albumElement.textContent.trim() //get album name
+        let trackAlbum = albumElement.textContent.trim()
 
         //get image URL
         const imageElement = document.querySelector('a.popupImage')
@@ -69,14 +93,14 @@ const createBandCampDownloadButton = () => {
             },
             body: JSON.stringify({ imageUrl: imageUrl })
         });
-        
+
         const jsonResponse = await fetchImage.json();
         const base64Image = jsonResponse.imageBase64;
         let blob = base64ToBlob(base64Image, 'image/jpeg');
         image = await blob.arrayBuffer();
-        
+
         console.log("Base64 Image:", image);
-        
+
 
         //track genre null
         trackGenre = ''
@@ -819,15 +843,15 @@ const observeTrackItems = () => {
 
         // Check if Bandcamp page is for an Album
         const typeEl = document.querySelector('span.buyItemPackageTitle');
-        
+
+        //checks if bandcmap age is album or track
         const isAlbum = typeEl?.textContent?.trim().includes("Album");
-        console.log(isAlbum)
 
         let filteredBandcampTargets = Array.from(bandcampTargets);
 
         if (isAlbum) {
             filteredBandcampTargets = filteredBandcampTargets.filter(el => {
-                
+
                 return !el.closest('div.digitaldescription');
             });
         }
