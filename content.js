@@ -51,29 +51,32 @@ const createBandCampDownloadButton = () => {
         //get album name
         const albumElement = document.querySelector('h2.trackTitle')
         trackAlbum = albumElement.textContent.trim() //get album name
-        console.log(trackAlbum)
 
         //get image URL
         const imageElement = document.querySelector('a.popupImage')
         const imageUrl = imageElement.href
+        // let image =  await getImageBlob(imageUrl)
+        console.log
+
+        //sedn to api
         console.log(imageUrl)
-        const image = await getImageBlob(defaultImageURL); //need to get creative
-        console.log(image)
+        // let image = await getImageBlob(defaultImageURL); //need to get creative
 
-        const fetchImage = await new Promise((resolve) => {
-            chrome.runtime.sendMessage({ action: "fetchImage", url: imageUrl }, resolve);
+        const fetchImage = await fetch("http://localhost:3000/download-image", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ imageUrl: imageUrl })
         });
-
-        if (fetchImage.success) {
-            const imageBlob = await (await fetch(fetchImage.dataUrl)).blob();
-
-            // Add this to fix missing MIME type
-            const image = new Blob([imageBlob], { type: 'image/jpeg' });
-
-            // Now you can use audioBlob like before
-        } else {
-            console.error('Failed to fetch image from service worker');
-        }
+        
+        const jsonResponse = await fetchImage.json();
+        const base64Image = jsonResponse.imageBase64;
+        let blob = base64ToBlob(base64Image, 'image/jpeg');
+        image = await blob.arrayBuffer();
+        
+        console.log("Base64 Image:", image);
+        
 
         //track genre null
         trackGenre = ''
@@ -999,6 +1002,15 @@ async function getClientId() {
 //sleep function to delay processes
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+function base64ToBlob(base64, mimeType) {
+    const byteCharacters = atob(base64.split(',')[1]);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+}
 
 
 observeTrackItems();

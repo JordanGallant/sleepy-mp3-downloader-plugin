@@ -100,41 +100,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // IMPORTANT: Keep the message channel open for async response
   }
 
-
-  if (request.action === "fetchImage") {
-    console.log(`Attempting to fetch image from URL: ${request.url}`);
-    
-    fetch(request.url, { mode: 'no-cors' })
-      .then(response => {
-        console.log(`Fetch response received:`, response);
-        return response.blob();
-      })
-      .then(blob => {
-        console.log(`Blob created successfully:`, {
-          type: blob.type,
-          size: `${(blob.size / 1024).toFixed(2)} KB`
-        });
-        
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          console.log(`FileReader completed loading the image`);
-          sendResponse({ success: true, dataUrl: reader.result });
-          console.log(`Response sent with dataUrl (length: ${reader.result.length})`);
-        };
-        
-        console.log(`Starting FileReader.readAsDataURL`);
-        reader.readAsDataURL(blob);
-      })
-      .catch(error => {
-        console.error("Failed to fetch image:", error);
-        sendResponse({ success: false, error: error.message });
-        console.log(`Error response sent`);
-      });
-  
-    console.log("Keeping message channel open for async response");
-    return true; // Keep message channel open
-  }
-
   
 });
 

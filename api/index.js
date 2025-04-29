@@ -8,6 +8,8 @@ const dotenv = require('dotenv');
 const axios = require('axios');
 const youtubedl = require('youtube-dl-exec');
 const { exec } = require('child_process');
+const { error } = require('console');
+const { stdout, stderr } = require('process');
 
 
 dotenv.config();
@@ -21,6 +23,31 @@ app.use(express.text());
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();
+});
+
+//downloads image from BANDCAMP
+app.post('/download-image', async (req, res) => {
+    try {
+        const { imageUrl } = req.body;
+        console.log("Processing image URL:", imageUrl);
+        
+        const imageBuffer = await getImageBlob(imageUrl);
+        
+        // Detect mime type (assuming jpeg for now)
+        const mimeType = 'image/jpeg'; // Ideally, detect dynamically
+        
+        // Convert the image buffer to Base64
+        const base64Image = imageBuffer.toString('base64');
+        
+        // Build the data URL
+        const dataUrl = `data:${mimeType};base64,${base64Image}`;
+        
+        // Send it back in JSON
+        res.json({ imageBase64: dataUrl });
+    } catch (error) {
+        console.error('Error processing image download:', error);
+        res.status(500).json({ error: 'Error processing image download' });
+    }
 });
 // dynamically gets client ID -> ensures even when revoked it works
 app.post('/get-soundcloud-clientid', async (req, res) => {
@@ -37,7 +64,7 @@ app.post('/get-soundcloud-clientid', async (req, res) => {
         res.send(stdout.trim());
     });
 });
-let requestCounter = 0;
+
 // search endpoint to YouTube -> now returns videoId to client
 app.post('/search', async (req, res) => {
     const query = req.body;
@@ -270,12 +297,6 @@ app.post('/convert-audio', upload.single('audio'), (req, res) => {
     const outputPath = `uploads/${Date.now()}_320kbps.mp3`;
 
     ffmpeg(inputPath)
-        .outputOptions([
-            '-b:a 320k',     // Set audio bitrate to 320k
-            '-c:a libmp3lame', // Use MP3 codec
-            '-q:a 0',        // Use highest quality
-            '-ar 44100'      // Set sample rate
-        ])
         .audioBitrate(320) //converts to 320kbps
         .on('start', (commandLine) => {
             console.log('[FFMPEG START]', commandLine);
@@ -329,6 +350,13 @@ app.post('/convert-audio', upload.single('audio'), (req, res) => {
         })
         .save(outputPath);
 });
+
+const getImageBlob = async (url) => {
+    const response = await fetch(url);
+    const imageBlob = await response.blob();
+    const arrayBuffer = await imageBlob.arrayBuffer();
+    return Buffer.from(arrayBuffer); // Turn it into a Node.js Buffer
+};
 
 // starts server
 app.listen(3000, () => {
