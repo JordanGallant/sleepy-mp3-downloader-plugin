@@ -85,9 +85,6 @@ app.post('/search', async (req, res) => {
                 }
             }
         }
-        requestCounter++;
-        console.log(`YouTube API request #${requestCounter} for query: ${query}`);
-
         // return the video Id and title to the client
         res.status(200).json({
             videoId: videoId

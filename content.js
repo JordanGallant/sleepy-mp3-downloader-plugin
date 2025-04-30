@@ -6,16 +6,36 @@ const SOUNDCLOUD_CLIENT_ID = "client_id=EjkRJG0BLNEZquRiPZYdNtJdyGtTuHdp"; //cli
 const SOUNDCLOUD_API_URL = "https://api-v2.soundcloud.com/resolve?url="; //very useful url resolver that finds any track from a given playlist url
 const defaultImageURL = "https://images.squarespace-cdn.com/content/v1/57a9f951e6f2e1756d5449ee/1742200459834-CYCOIBSGJO1RM1FX3J4G/DSC_4663.jpg?format=2500w" //if no image from soundcloud show naked lady :p
 
-//creates a track download button on bandcamp
 
+//creates a track download button on bandcamp
 const createBandCampDownloadButton = () => {
     const btn = document.createElement('button');
-    const styles = document.querySelector('style#custom-design-rules-style')
-    console.log(styles)
+
+    //dynamically get styles :)
+    let backgroundColor = '#629aa9'; // fallback default
+    let textColor = 'white'
+    const styleElement = document.querySelector('style#custom-design-rules-style');
+    if (styleElement) {
+        const dataAttr = styleElement.getAttribute('data-design');
+        if (dataAttr) {
+            try {
+                const designData = JSON.parse(dataAttr);
+                if (designData.link_color) {
+                    backgroundColor = `#${designData.link_color}`;
+                }
+                if (designData.bg_color) {
+                    textColor = `#${designData.bg_color}`
+                }
+            } catch (err) {
+                console.warn("Failed to parse data-design attribute:", err);
+            }
+        }
+    }
     Object.assign(btn.style, {
-        background: '#629aa9',
+        background: backgroundColor,
+        marginLeft: '25px',
         borderRadius: '6px',
-        color: 'white',
+        color: textColor,
         textAlign: 'center',
         padding: '2px 6px',
         fontSize: '12px',
@@ -53,20 +73,17 @@ const createBandCampDownloadButton = () => {
         let mp3Link;
         //sees if it is a single track
         if (tracks.length < 2) {
-            console.log(tracks[0])
             trackArtist = tracks[0].artist
-            console.log(trackArtist)
             const link = tracks[0].file
             mp3Link = link["mp3-128"];
-            console.log(mp3Link)
+
         } else {
             //gets track link based off of track name inside index
             const index = tracks.findIndex(track => track.title === trackTitle);
             trackArtist = tracks[index].artist
-            console.log(trackArtist)
             const link = tracks[index].file
             mp3Link = link["mp3-128"];
-            console.log(mp3Link)
+
         }
 
         //get album name
@@ -77,10 +94,8 @@ const createBandCampDownloadButton = () => {
         const imageElement = document.querySelector('a.popupImage')
         const imageUrl = imageElement.href
         // let image =  await getImageBlob(imageUrl)
-        console.log
 
-        //sedn to api
-        console.log(imageUrl)
+
         //will feth from api to bypass CORS restrictions
         const fetchImage = await fetch("https://audio-api-6r6z.onrender.com/download-image", {
             method: 'POST',

@@ -1,8 +1,8 @@
 To Dos
 ---------------------------
 inherit button styles - Bandcamp
-Youtube mp3 downloader
 Youtbe DATA API limits -> 100 searches a day
+Youtube mp3 downloader
 Download Progress 0-50% for spotify * COMPLICATED * 
 
 
@@ -92,5 +92,9 @@ curl -s "https://www.youtube.com/results?search_query=YOUR_QUERY_HERE" \
   head -1 | \
   cut -d'"' -f4
 
+
+Bandcamp links -
+https://reflectivethehomeofthebassline.bandcamp.com/
+https://untitleddist.bandcamp.com/
 
 
