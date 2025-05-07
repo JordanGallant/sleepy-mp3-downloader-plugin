@@ -69,13 +69,6 @@ const createBandCampDownloadButton = () => {
 
         tracks = parsedData.trackinfo;
         console.log(parsedData)
-
-
-
-
-
-
-
         let mp3Link;
         //sees if it is a single track
         if (tracks.length < 2) {
@@ -106,8 +99,14 @@ const createBandCampDownloadButton = () => {
             trackArtist = parts[0].trim();
             trackAlbum = parts.slice(1).join('-').trim();
         } else {
-            // If there is no hyphen, set artist name to be the same as album name
-            trackArtist = rawText;
+            // if no -
+            const albumTitleElement = document.querySelector('.albumTitle');
+            if (albumTitleElement) {
+                const artistLink = albumTitleElement.querySelector('a');
+                if (artistLink) {
+                    trackArtist = artistLink.textContent.trim();"text of artist"
+                }
+            }
             trackAlbum = rawText;
         }
 
@@ -134,8 +133,14 @@ const createBandCampDownloadButton = () => {
         //get genre from bottom left
         const tagsDiv = document.querySelector('.tralbumData.tralbum-tags');
         const tagElements = tagsDiv.querySelectorAll('a.tag');
-        const trackGenre = Array.from(tagElements).map(tag => tag.textContent.trim());
+        const trackGenre = Array.from(tagElements)
+            .slice(0, 3)  // Limit to first 3 tags
+            .map(tag => tag.textContent.trim());
 
+        // Pad with nulls or a placeholder if fewer than 3 genres
+        while (trackGenre.length < 3) {
+            trackGenre.push(null); // or "unknown", "other", etc.
+        }
         //checks if titles are already on local storage
         const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
 
