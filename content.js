@@ -85,31 +85,16 @@ const createBandCampDownloadButton = () => {
 
         // Select the h2 element with class trackTitle
         const albumElement = document.querySelector('h2.trackTitle');
-
         // Get the text content and trim whitespace
         const rawText = albumElement.textContent.trim();
-
         // Split the text at the hyphen to separate artist from album
-        const parts = rawText.split('-');
-
-        let trackArtist, trackAlbum;
-
-        if (parts.length > 1) {
-            // If there is a hyphen, artist is to the left and album is to the right
-            trackArtist = parts[0].trim();
-            trackAlbum = parts.slice(1).join('-').trim();
-        } else {
-            // if no -
-            const albumTitleElement = document.querySelector('.albumTitle');
-            if (albumTitleElement) {
-                const artistLink = albumTitleElement.querySelector('a');
-                if (artistLink) {
-                    trackArtist = artistLink.textContent.trim();"text of artist"
-                }
-            }
-            trackAlbum = rawText;
+        let trackAlbum = rawText;
+        const artistLinkElement = document.querySelector('h3 > span > a');
+        let trackArtist = '';
+        if (artistLinkElement) {
+            trackArtist = artistLinkElement.textContent.trim();
         }
-
+        console.log('Artist:', trackArtist);
 
         //get image URL
         const imageElement = document.querySelector('a.popupImage')
