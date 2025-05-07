@@ -111,9 +111,6 @@ const createBandCampDownloadButton = () => {
             trackAlbum = rawText;
         }
 
-        // Log the results to verify
-        console.log(`Artist: ${trackArtist}`);
-        console.log(`Album: ${trackAlbum}`);
 
         //get image URL
         const imageElement = document.querySelector('a.popupImage')
