@@ -69,26 +69,51 @@ const createBandCampDownloadButton = () => {
 
         tracks = parsedData.trackinfo;
         console.log(parsedData)
-        let trackArtist;
+
+
+
+
+
+
+
         let mp3Link;
         //sees if it is a single track
         if (tracks.length < 2) {
-            trackArtist = tracks[0].artist
             const link = tracks[0].file
             mp3Link = link["mp3-128"];
 
         } else {
             //gets track link based off of track name inside index
             const index = tracks.findIndex(track => track.title === trackTitle);
-            trackArtist = tracks[index].artist
             const link = tracks[index].file
             mp3Link = link["mp3-128"];
 
         }
 
-        //get album name
-        const albumElement = document.querySelector('h2.trackTitle')
-        let trackAlbum = albumElement.textContent.trim()
+        // Select the h2 element with class trackTitle
+        const albumElement = document.querySelector('h2.trackTitle');
+
+        // Get the text content and trim whitespace
+        const rawText = albumElement.textContent.trim();
+
+        // Split the text at the hyphen to separate artist from album
+        const parts = rawText.split('-');
+
+        let trackArtist, trackAlbum;
+
+        if (parts.length > 1) {
+            // If there is a hyphen, artist is to the left and album is to the right
+            trackArtist = parts[0].trim();
+            trackAlbum = parts.slice(1).join('-').trim();
+        } else {
+            // If there is no hyphen, set artist name to be the same as album name
+            trackArtist = rawText;
+            trackAlbum = rawText;
+        }
+
+        // Log the results to verify
+        console.log(`Artist: ${trackArtist}`);
+        console.log(`Album: ${trackAlbum}`);
 
         //get image URL
         const imageElement = document.querySelector('a.popupImage')
@@ -114,7 +139,6 @@ const createBandCampDownloadButton = () => {
         const tagElements = tagsDiv.querySelectorAll('a.tag');
         const trackGenre = Array.from(tagElements).map(tag => tag.textContent.trim());
 
-        console.log(trackGenre);
         //checks if titles are already on local storage
         const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
 
@@ -164,7 +188,6 @@ const createBandCampDownloadButton = () => {
 
         // Get converted audio blob
         const convertedBlob = await postResponse.blob();
-        console.log(convertedBlob)
 
         const convertedAudio = await getAudioUintArray(convertedBlob);
 
