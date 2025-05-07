@@ -109,8 +109,12 @@ const createBandCampDownloadButton = () => {
         const base64Image = jsonResponse.imageBase64;//selects just base 64 image
         let blob = base64ToBlob(base64Image, 'image/jpeg');//converts base64 to Blob -> custom fucntion
         image = await blob.arrayBuffer();
-        //track genre null
-        trackGenre = ''
+        //get genre from bottom left
+        const tagsDiv = document.querySelector('.tralbumData.tralbum-tags');
+        const tagElements = tagsDiv.querySelectorAll('a.tag');
+        const trackGenre = Array.from(tagElements).map(tag => tag.textContent.trim());
+
+        console.log(trackGenre);
         //checks if titles are already on local storage
         const existingTitles = JSON.parse(localStorage.getItem('trackTitles')) || [];
 
