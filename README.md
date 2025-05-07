@@ -6,6 +6,8 @@ This project is a browser extension that injects a music downloader directly int
 
 Most MP3 downloaders are tedious to use and often return low-quality audio — this tool is designed to solve that.
 
+This repo is part of a Bigger Project -> 
+https://revival-records.vercel.app/ -
 
 ## Prerequisites
 Node v20*
