@@ -59,7 +59,7 @@ const createBandCampDownloadButton = () => {
         }
 
 
-        const scriptTag = document.querySelector('script[src="https://s4.bcbits.com/bundle/bundle/1/tralbum_head-5f2cae3cbbe6493a088eaffef359be44.js"]');
+        const scriptTag = document.querySelector('script[src="https://s4.bcbits.com/client-bundle/1/trackpipe/tralbum_head-a9d32b65ead030b3357fb05ad0674e00.js"]');
         const tralbumData = scriptTag.getAttribute('data-tralbum');
         const parsedData = JSON.parse(tralbumData.replace(/&quot;/g, '"')
             .replace(/&amp;/g, '&')
