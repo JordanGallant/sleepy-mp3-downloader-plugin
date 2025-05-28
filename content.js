@@ -2,7 +2,7 @@ import { ID3Writer } from 'browser-id3-writer'; // metadata writer
 import JSZip from "jszip"; //javascript zip library
 
 
-const SOUNDCLOUD_CLIENT_ID = "client_id=EjkRJG0BLNEZquRiPZYdNtJdyGtTuHdp"; //client id needed for authorization, can be repeated, Souncloud is dumb and bad at security
+const SOUNDCLOUD_CLIENT_ID = "client_id=CQzyZQR9J1A6DwlJEpfEiEDQbCbwOMfu"; //client id needed for authorization, can be repeated, Souncloud is dumb and bad at security
 const SOUNDCLOUD_API_URL = "https://api-v2.soundcloud.com/resolve?url="; //very useful url resolver that finds any track from a given playlist url
 const defaultImageURL = "https://images.squarespace-cdn.com/content/v1/57a9f951e6f2e1756d5449ee/1742200459834-CYCOIBSGJO1RM1FX3J4G/DSC_4663.jpg?format=2500w" //if no image from soundcloud show naked lady :p
 
