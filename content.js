@@ -59,7 +59,7 @@ const createBandCampDownloadButton = () => {
         }
 
 
-        const scriptTag = document.querySelector('script[src="https://s4.bcbits.com/client-bundle/1/trackpipe/tralbum_head-d0467f83c68edabd35f38cab1b0335a3.js"]');
+        const scriptTag = document.querySelector('script[src="https://s4.bcbits.com/client-bundle/1/trackpipe/tralbum_head-c4d5dbd421428dbd5fae1b70b9eb79d3.js"]');
         const tralbumData = scriptTag.getAttribute('data-tralbum');
         const parsedData = JSON.parse(tralbumData.replace(/&quot;/g, '"')
             .replace(/&amp;/g, '&')
@@ -103,7 +103,7 @@ const createBandCampDownloadButton = () => {
 
 
         //will feth from api to bypass CORS restrictions
-        const fetchImage = await fetch("https://audio-api-6r6z.onrender.com/download-image", {
+        const fetchImage = await fetch("http://localhost:3000/download-image", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -164,7 +164,7 @@ const createBandCampDownloadButton = () => {
         const formData = new FormData();
         formData.append('audio', audioBlob, 'audio.mp3');
 
-        const postResponse = await fetch(`https://audio-api-6r6z.onrender.com/convert-audio?id=${id}`, {
+        const postResponse = await fetch(`http://localhost:3000/convert-audio?id=${id}`, {
             method: 'POST',
             body: formData,
         });
@@ -297,7 +297,7 @@ const createDownloadAllSpotifyButton = () => {
                 // Sends id to service worker (1)
                 chrome.runtime.sendMessage({ action: "setId", id: id });
 
-                const getID = await fetch('https://audio-api-6r6z.onrender.com/search', {
+                const getID = await fetch('http://localhost:3000/search', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'text/plain',
@@ -311,7 +311,7 @@ const createDownloadAllSpotifyButton = () => {
 
                 // Send to api to download
                 const videoId = data.videoId;
-                const postResponse = await fetch(`https://audio-api-6r6z.onrender.com/download?id=${id}`, {
+                const postResponse = await fetch(`http://localhost:3000/download?id=${id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -470,7 +470,7 @@ const createSpotifyDownloadButton = () => {
 
 
             // send urlencoded query to api -> search for song on youtube
-            const getID = await fetch('https://audio-api-6r6z.onrender.com/search', {
+            const getID = await fetch('http://localhost:3000/search', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'text/plain',
@@ -483,7 +483,7 @@ const createSpotifyDownloadButton = () => {
 
             // send to api to download
             const videoId = data.videoId
-            postResponse = await fetch(`https://audio-api-6r6z.onrender.com/download?id=${id}`, {
+            postResponse = await fetch(`http://localhost:3000/download?id=${id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -643,7 +643,7 @@ const createDownloadAllSoundCloudButton = (playlistElement) => {
                 const formData = new FormData();
                 formData.append('audio', audioBlob, 'audio.mp3');
 
-                const postResponse = await fetch(`https://audio-api-6r6z.onrender.com/convert-audio?id=${id}`, {
+                const postResponse = await fetch(`http://localhost:3000/convert-audio?id=${id}`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -796,7 +796,7 @@ const createSoundCloudDownloadButton = (trackElement) => {
             formData.append('audio', audioBlob, 'audio.mp3');
 
             //send untagged audio blob to API - where it will be converted to 320 kbps 
-            const postResponse = await fetch(`https://audio-api-6r6z.onrender.com/convert-audio?id=${id}`, {
+            const postResponse = await fetch(`http://localhost:3000/convert-audio?id=${id}`, {
                 method: 'POST',
                 body: formData,
             });
@@ -1050,7 +1050,7 @@ function tagAudio({
 //dynamically get client ID from soundlcloud
 async function getClientId() {
     try {
-        const response = await fetch('https://audio-api-6r6z.onrender.com/get-soundcloud-clientid', { method: 'POST' });
+        const response = await fetch('http://localhost:3000/get-soundcloud-clientid', { method: 'POST' });
         const clientId = await response.text();
         return clientId;
         // use clientId here
