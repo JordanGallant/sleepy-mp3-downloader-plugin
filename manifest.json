@@ -8,14 +8,16 @@
     "downloads",
     "storage",
     "declarativeNetRequest",
-    "declarativeNetRequestWithHostAccess"
+    "declarativeNetRequestWithHostAccess",
+    "webRequest"
   ],
   "host_permissions": [
     "https://soundcloud.com/*",
     "https://audio-api-6r6z.onrender.com/*",
     "https://open.spotify.com/*",
     "https://*.bandcamp.com/*",
-    "https://t4.bcbits.com/*"
+    "https://t4.bcbits.com/*",
+    "*://api-v2.soundcloud.com/*"
   ],
   "background": {
     "service_worker": "service_worker.js"

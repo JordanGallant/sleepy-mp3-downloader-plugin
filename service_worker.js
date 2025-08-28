@@ -6,6 +6,20 @@ let titles = null;
 let popupConnected = false;
 let popupPort = null;
 
+//intercept soundcloud clientid
+chrome.webRequest.onBeforeRequest.addListener(
+  (details) => {
+    console.log("Intercepted:", details.url);  // ✅ should fire on every matching request
+    const url = new URL(details.url);
+    const clientId = url.searchParams.get("client_id");
+    if (clientId) {
+      console.log("Found client_id:", clientId);
+      chrome.storage.local.set({ soundcloudClientId: clientId });
+    }
+  },
+  { urls: ["*://api-v2.soundcloud.com/*"] }
+);
+
 // see if popup is open
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === "popup") {
@@ -43,7 +57,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Received id:", id);
 
     //live progress feed from api endpoint
-    evtSource = new EventSource(`https://audio-api-6r6z.onrender.com/progress?id=${id}`);
+    evtSource = new EventSource(`http://localhost:3000/progress?id=${id}`);
 
     //get progress percentage
     evtSource.onmessage = (event) => {
