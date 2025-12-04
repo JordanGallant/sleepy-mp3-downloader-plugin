@@ -2,10 +2,6 @@
 
 ## How it works
 
-This project is a browser extension that injects a music downloader directly into your browser for **SoundCloud**, **Spotify**, and **Bandcamp**. It uses a Dockerized audio converter powered by `ffmpeg` to convert tracks to high-quality MP3 files at **320kbps** bitrate. The extension also supports **batch downloading** with ZIP file packaging and keeps a log of **recent downloads** for easy access. All metadata is collected -[cover image, artist name, album name]
-
-Most MP3 downloaders are tedious to use and often return low-quality audio — this tool is designed to solve that.
-
 This repo is part of a Bigger Project -> 
 https://revival-records.vercel.app/ -
 
