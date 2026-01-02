@@ -1,4 +1,4 @@
-# Sleepy MP3 downloader
+# JGSleepy MP3 downloader
 
 ## How it works
 
